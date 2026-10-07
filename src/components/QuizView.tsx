@@ -66,16 +66,18 @@ export const QuizView: React.FC<QuizViewProps> = ({
   // When jumping to a new question, load its working state
   const loadQuestionState = (idx: number) => {
     setCurrentIndex(idx);
+    const targetQ = questions[idx];
     const existing = answers[idx];
     if (existing) {
       setActiveMCOption(existing.selectedMCOption || null);
       setActiveIdentInput(existing.identificationInput || '');
-      setActiveEnumInputs(existing.enumerationInputs || ['', '', '']);
+      setActiveEnumInputs(existing.enumerationInputs || []);
       setActiveEssayInput(existing.essayInput || '');
     } else {
       setActiveMCOption(null);
       setActiveIdentInput('');
-      setActiveEnumInputs(['', '', '']);
+      const count = targetQ && Array.isArray(targetQ.correctAnswer) ? targetQ.correctAnswer.length : 3;
+      setActiveEnumInputs(Array(count).fill(''));
       setActiveEssayInput('');
     }
   };
@@ -119,7 +121,15 @@ export const QuizView: React.FC<QuizViewProps> = ({
       correct = normalize(activeMCOption || '') === normalize(currentQ.correctAnswer as string);
     } else if (currentQ.type === 'identification') {
       recordedAnswer = activeIdentInput.trim();
-      correct = normalize(activeIdentInput) === normalize(currentQ.correctAnswer as string);
+      const normInput = normalize(activeIdentInput);
+      const expectedAnswers = Array.isArray(currentQ.correctAnswer)
+        ? currentQ.correctAnswer.map(a => normalize(a))
+        : [normalize(currentQ.correctAnswer as string)];
+
+      correct = expectedAnswers.some(exp => 
+        exp === normInput || 
+        (normInput.length >= 3 && (exp.includes(normInput) || normInput.includes(exp)))
+      );
     } else if (currentQ.type === 'enumeration') {
       const answersExpected = Array.isArray(currentQ.correctAnswer)
         ? (currentQ.correctAnswer as string[]).map(a => normalize(a))
@@ -129,8 +139,11 @@ export const QuizView: React.FC<QuizViewProps> = ({
         .map(i => normalize(i))
         .filter(i => i.length > 0);
 
-      const matchedCount = providedAnswers.filter(ans => answersExpected.includes(ans)).length;
-      correct = matchedCount >= Math.min(providedAnswers.length, answersExpected.length);
+      const matchedExpected = answersExpected.filter(exp => 
+        providedAnswers.some(prov => prov === exp || (prov.length >= 3 && (exp.includes(prov) || prov.includes(exp))))
+      );
+      const threshold = answersExpected.length <= 3 ? answersExpected.length : Math.ceil(answersExpected.length * 0.75);
+      correct = matchedExpected.length >= threshold;
       recordedAnswer = activeEnumInputs.filter(Boolean).join(', ');
     } else if (currentQ.type === 'essay') {
       recordedAnswer = activeEssayInput.trim();
@@ -209,7 +222,9 @@ export const QuizView: React.FC<QuizViewProps> = ({
     setCurrentIndex(0);
     setActiveMCOption(null);
     setActiveIdentInput('');
-    setActiveEnumInputs(['', '', '']);
+    const firstQ = questions[0];
+    const count = firstQ && Array.isArray(firstQ.correctAnswer) ? firstQ.correctAnswer.length : 3;
+    setActiveEnumInputs(Array(count).fill(''));
     setActiveEssayInput('');
     setIsQuizFinished(false);
   };
@@ -265,6 +280,16 @@ export const QuizView: React.FC<QuizViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          {/* Quick Study Notes Switcher */}
+          <button
+            onClick={() => onNavigateToTab('notes')}
+            className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="Read study notes"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+            <span>Notes</span>
+          </button>
+
           {/* Prominent Restart Quiz Button */}
           <button
             onClick={handleRestartQuiz}
@@ -458,10 +483,22 @@ export const QuizView: React.FC<QuizViewProps> = ({
               {/* Enumeration */}
               {currentQ.type === 'enumeration' && (
                 <div className="space-y-2.5">
-                  <label className="block text-xs font-medium text-slate-600">
-                    List Items:
-                  </label>
-                  {(isCurrentSubmitted ? (answers[currentIndex]?.enumerationInputs || ['', '', '']) : activeEnumInputs).map((item, idx) => (
+                  <div className="flex items-center justify-between text-xs text-slate-600">
+                    <label className="block font-medium">
+                      List {Array.isArray(currentQ.correctAnswer) ? currentQ.correctAnswer.length : ''} items:
+                    </label>
+                    {!isCurrentSubmitted && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveEnumInputs(prev => [...prev, ''])}
+                        className="text-[11px] font-semibold hover:underline cursor-pointer"
+                        style={{ color: theme.primary }}
+                      >
+                        + Add item line
+                      </button>
+                    )}
+                  </div>
+                  {(isCurrentSubmitted ? (answers[currentIndex]?.enumerationInputs || []) : activeEnumInputs).map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-400 w-6">#{idx + 1}</span>
                       <input

@@ -336,7 +336,7 @@ export const initialExams: Exam[] = [
             fileName: 'Quiz1_Standard_Precautions_Hazards.pdf',
             fileSnippet: 'Assessment testing OSHA compliance, PPE donning and doffing protocols, 10% bleach housekeeping, fire extinguisher intervals, and electrical safety.',
             testDate: '2026-10-15',
-            questionTypes: ['multiple_choice', 'identification'],
+            questionTypes: ['multiple_choice'],
             questionCount: 10,
             createdAt: '2026-10-07',
             notesScrollProgress: 0,
@@ -358,10 +358,16 @@ export const initialExams: Exam[] = [
               },
               {
                 id: 'q1-2',
-                type: 'identification',
-                question: 'Name the specific regulatory agency that issued the final rule for the Occupational Exposure to Bloodborne Pathogens Standard.',
-                correctAnswer: 'OSHA',
-                explanation: 'The Occupational Safety and Health Administration (OSHA) issued this standard.',
+                type: 'multiple_choice',
+                question: 'Which regulatory agency issued the final rule for the Occupational Exposure to Bloodborne Pathogens Standard?',
+                options: [
+                  'Occupational Safety and Health Administration (OSHA)',
+                  'Environmental Protection Agency (EPA)',
+                  'Food and Drug Administration (FDA)',
+                  'Department of Transportation (DOT)'
+                ],
+                correctAnswer: 'Occupational Safety and Health Administration (OSHA)',
+                explanation: 'The Occupational Safety and Health Administration (OSHA) issued the Bloodborne Pathogens Standard to protect healthcare and laboratory workers.',
                 points: 10
               },
               {
@@ -375,7 +381,7 @@ export const initialExams: Exam[] = [
                   'The supervisor signature and laboratory license number'
                 ],
                 correctAnswer: 'Name of solution, date/time prepared, date/time of expiration, and preparer initials',
-                explanation: 'Proper housekeeping labeling requires the chemical name, preparation timestamp, expiration timestamp, and initials of the preparer (Slide 7).',
+                explanation: 'Proper housekeeping labeling requires the chemical name, preparation timestamp, expiration timestamp (24 hours), and initials of the preparer (Slide 7).',
                 points: 10
               },
               {
@@ -408,10 +414,16 @@ export const initialExams: Exam[] = [
               },
               {
                 id: 'q1-6',
-                type: 'identification',
+                type: 'multiple_choice',
                 question: 'What type of adapters that allow 3-prong plugs to be inserted into 2-prong ungrounded outlets must be strictly avoided or prohibited in the lab?',
-                correctAnswer: 'cheater adapters',
-                explanation: '"Cheater adapters" defeat equipment grounding and create serious shock and fire hazards (Slide 12).',
+                options: [
+                  '"Cheater adapters" (ungrounded 3-to-2 prong adapters)',
+                  'Ground Fault Circuit Interrupters (GFCI)',
+                  'Surge protectors with internal circuit breakers',
+                  'Commercial laboratory grade power strips'
+                ],
+                correctAnswer: '"Cheater adapters" (ungrounded 3-to-2 prong adapters)',
+                explanation: '"Cheater adapters" defeat equipment grounding, creating severe shock and fire hazards (Slide 12).',
                 points: 10
               },
               {
@@ -444,9 +456,15 @@ export const initialExams: Exam[] = [
               },
               {
                 id: 'q1-9',
-                type: 'identification',
+                type: 'multiple_choice',
                 question: 'What solvent is specifically recommended to clean microscope objectives in the laboratory?',
-                correctAnswer: 'alcohol-based solvents',
+                options: [
+                  'Alcohol-based solvents',
+                  '10% sodium hypochlorite bleach',
+                  'Tap water with liquid hand soap',
+                  'Concentrated hydrochloric acid'
+                ],
+                correctAnswer: 'Alcohol-based solvents',
                 explanation: 'Slide 11 notes: "Use alcohol-based solvents to clean microscope objectives."',
                 points: 10
               },
@@ -470,9 +488,9 @@ export const initialExams: Exam[] = [
             id: 'rev-quiz-bsc-levels',
             name: 'Quiz 2 – BSCs, Biosafety Levels & Controls',
             fileName: 'Quiz2_BSCs_Biosafety_Levels.pdf',
-            fileSnippet: 'Comprehensive test covering Biological Safety Cabinet mechanics (Classes I, IIA, IIB, III), aerosol risks, BSL 1-4 organisms, and the Hierarchy of Controls.',
+            fileSnippet: 'Comprehensive assessment exclusively covering identification and enumeration of Biological Safety Cabinets (Classes I-III), BSL tiers 1-4, PPE sequences, and the Hierarchy of Controls.',
             testDate: '2026-10-15',
-            questionTypes: ['multiple_choice', 'identification'],
+            questionTypes: ['identification', 'enumeration'],
             questionCount: 10,
             createdAt: '2026-10-07',
             notesScrollProgress: 0,
@@ -480,124 +498,108 @@ export const initialExams: Exam[] = [
             questions: [
               {
                 id: 'q2-1',
-                type: 'multiple_choice',
-                question: 'Which procedures in specimen processing generate infectious aerosols and therefore MUST be performed inside a Biological Safety Cabinet?',
-                options: [
-                  'Mincing, grinding, vortexing, and preparing direct smears for microscopy',
-                  'Labeling specimen tubes with a ballpoint pen',
-                  'Entering patient demographics into the computer system',
-                  'Storing sterile petri dishes in unopened cardboard boxes'
-                ],
-                correctAnswer: 'Mincing, grinding, vortexing, and preparing direct smears for microscopy',
-                explanation: 'Slide 15 highlights that mincing, grinding, vortexing, and direct smear preparation generate aerosols and must be carried out inside a BSC.',
-                points: 10
-              },
-              {
-                id: 'q2-2',
-                type: 'multiple_choice',
-                question: 'Why does a Class I Biological Safety Cabinet protect the laboratory worker but NOT protect the research culture product from contamination?',
-                options: [
-                  'Unsterilized room air is drawn directly into the cabinet and passes over the work area',
-                  'It lacks an exhaust HEPA filter',
-                  'It is operated under positive pressure pushing air outwards',
-                  'It uses ultraviolet light that kills all specimens'
-                ],
-                correctAnswer: 'Unsterilized room air is drawn directly into the cabinet and passes over the work area',
-                explanation: 'Class I cabinets pull room air across the open front over the specimen before filter-sterilizing only the exhaust air (Slide 16).',
-                points: 10
-              },
-              {
-                id: 'q2-3',
-                type: 'multiple_choice',
-                question: 'How do Class II Biological Safety Cabinets protect both the operator and the specimen from contamination?',
-                options: [
-                  'Vertical laminar flow creates sterile air "sheets" acting as barriers and directing contaminated air into HEPA filters',
-                  'By filling the cabinet completely with nitrogen gas',
-                  'By heating the interior chamber to 100°C during procedures',
-                  'By recirculating 100% of the air without exhaust'
-                ],
-                correctAnswer: 'Vertical laminar flow creates sterile air "sheets" acting as barriers and directing contaminated air into HEPA filters',
-                explanation: 'Class II vertical laminar flow BSCs circulate HEPA-filtered air in uniform sheets over the work zone, protecting the product while maintaining an inward air curtain to protect the worker (Slide 17).',
-                points: 10
-              },
-              {
-                id: 'q2-4',
                 type: 'identification',
-                question: 'Which class of Biological Safety Cabinet is a completely gas-tight enclosure where materials are manipulated exclusively through sealed heavy rubber gloves attached to the cabinet?',
+                question: 'Which class of Biological Safety Cabinet is a completely gas-tight enclosure where materials are manipulated exclusively through sealed heavy rubber arm-length gloves attached to the cabinet?',
                 correctAnswer: 'Class III',
                 explanation: 'Class III cabinets (glove boxes) provide maximum containment for extreme high-hazard pathogens (Slide 19).',
                 points: 10
               },
               {
-                id: 'q2-5',
-                type: 'multiple_choice',
-                question: 'Under which Biosafety Level are Marburg virus and Congo-Crimean hemorrhagic fever classified?',
-                options: [
-                  'Biosafety Level 4 (BSL-4)',
-                  'Biosafety Level 1 (BSL-1)',
-                  'Biosafety Level 2 (BSL-2)',
-                  'Biosafety Level 3 (BSL-3)'
+                id: 'q2-2',
+                type: 'enumeration',
+                question: 'Enumerate the 5 levels of the NIOSH Hierarchy of Controls in order from MOST effective to LEAST effective.',
+                correctAnswer: [
+                  'Elimination',
+                  'Substitution',
+                  'Engineering Controls',
+                  'Administrative Controls',
+                  'PPE'
                 ],
-                correctAnswer: 'Biosafety Level 4 (BSL-4)',
-                explanation: 'Marburg virus and Congo-Crimean hemorrhagic fever are exotic, life-threatening viral hemorrhagic fevers classified under BSL-4 (Slide 23).',
+                explanation: 'The NIOSH Hierarchy of Controls: 1. Elimination (most effective), 2. Substitution, 3. Engineering Controls, 4. Administrative Controls, 5. PPE (least effective) (Slide 24).',
+                points: 10
+              },
+              {
+                id: 'q2-3',
+                type: 'identification',
+                question: 'Name the non-pathogenic amoeboflagellate organism listed alongside Bacillus subtilis as an example of a Biosafety Level 1 (BSL-1) agent.',
+                correctAnswer: 'Naegleria gruberi',
+                explanation: 'Naegleria gruberi is a harmless organism used in educational settings classified under BSL-1 (Slide 20).',
+                points: 10
+              },
+              {
+                id: 'q2-4',
+                type: 'enumeration',
+                question: 'Enumerate the correct 5-step sequence for DONNING (putting on) Personal Protective Equipment (PPE).',
+                correctAnswer: [
+                  'Hand Hygiene',
+                  'Gown',
+                  'Mask',
+                  'Eye Protection',
+                  'Gloves'
+                ],
+                explanation: 'Slide 6 Donning Order: 1. Hand Hygiene → 2. Gown → 3. Mask/Respirator → 4. Eye Protection (Goggles/Shield) → 5. Gloves (over gown cuffs).',
+                points: 10
+              },
+              {
+                id: 'q2-5',
+                type: 'enumeration',
+                question: 'Enumerate the correct 5-step sequence for DOFFING (removing) Personal Protective Equipment (PPE).',
+                correctAnswer: [
+                  'Gloves',
+                  'Gown',
+                  'Eye Protection',
+                  'Mask',
+                  'Hand Hygiene'
+                ],
+                explanation: 'Slide 6 Doffing Order: 1. Gloves (most contaminated, removed first!) → 2. Gown → 3. Eye Protection → 4. Mask → 5. Hand Hygiene.',
                 points: 10
               },
               {
                 id: 'q2-6',
-                type: 'multiple_choice',
-                question: 'Coxiella burnetii, the causative agent of Q fever, is classified under which biosafety tier due to transmission through infectious aerosols?',
-                options: [
-                  'Biosafety Level 3 (BSL-3)',
-                  'Biosafety Level 1 (BSL-1)',
-                  'Biosafety Level 2 (BSL-2)',
-                  'Biosafety Level 4 (BSL-4)'
-                ],
-                correctAnswer: 'Biosafety Level 3 (BSL-3)',
-                explanation: 'Coxiella burnetii is an aerosol-transmitted pathogen classified as BSL-3 (Slide 22).',
+                type: 'identification',
+                question: 'Name the infectious bacterial agent that causes tuberculosis, classified under Biosafety Level 3 (BSL-3) due to primary aerosol transmission.',
+                correctAnswer: 'Mycobacterium tuberculosis',
+                explanation: 'Mycobacterium tuberculosis is a high-risk aerosol-transmitted pathogen classified as BSL-3 (Slide 22).',
                 points: 10
               },
               {
                 id: 'q2-7',
-                type: 'multiple_choice',
-                question: 'Which element in the Hierarchy of Controls is considered the LAST line of defense and least effective?',
-                options: [
-                  'Personal Protective Equipment (PPE)',
-                  'Elimination',
-                  'Engineering Controls',
-                  'Substitution'
+                type: 'enumeration',
+                question: 'Enumerate four laboratory procedures used to process specimens for culture that generate aerosols and must be performed inside a Biological Safety Cabinet (BSC).',
+                correctAnswer: [
+                  'Mincing',
+                  'Grinding',
+                  'Vortexing',
+                  'Direct Smear Preparation'
                 ],
-                correctAnswer: 'Personal Protective Equipment (PPE)',
-                explanation: 'PPE is ranked as the least effective control because it does not eliminate the hazard and relies entirely on user adherence and proper fit (Slide 24).',
+                explanation: 'Slide 15 highlights that mincing, grinding, vortexing, and preparing direct smears for microscopic examination generate aerosols and must be performed inside a BSC.',
                 points: 10
               },
               {
                 id: 'q2-8',
                 type: 'identification',
-                question: 'According to the Hierarchy of Controls, which category do Biological Safety Cabinets and negative pressure ventilation systems belong to?',
+                question: 'In the Hierarchy of Controls, which category isolates workers from hazards using equipment such as Biological Safety Cabinets and negative pressure ventilation systems?',
                 correctAnswer: 'Engineering Controls',
-                explanation: 'Engineering controls isolate personnel from hazards through physical machinery and ventilation systems.',
+                explanation: 'Engineering controls isolate personnel from hazards through physical containment machinery and airflow controls.',
                 points: 10
               },
               {
                 id: 'q2-9',
-                type: 'multiple_choice',
-                question: 'In BSL-4 maximum containment facilities, what mandatory procedure must be completed by personnel before leaving the facility?',
-                options: [
-                  'Personnel and all materials must undergo full decontamination before leaving',
-                  'They must wash their hands in the cafeteria sink',
-                  'They must leave their shoes in the parking lot',
-                  'They must report to human resources for a pulse check'
-                ],
-                correctAnswer: 'Personnel and all materials must undergo full decontamination before leaving',
-                explanation: 'Slide 23 states: "Personnel and all materials must be decontaminated before leaving the facility and all procedures are performed under maximum containment."',
+                type: 'identification',
+                question: 'What Biosafety Level (BSL) designation is required for handling exotic, lethal viral hemorrhagic fevers like Marburg virus and Congo-Crimean hemorrhagic fever?',
+                correctAnswer: 'BSL-4',
+                explanation: 'BSL-4 is designated for dangerous, exotic agents causing life-threatening disease with no available vaccine or therapy (Slide 23).',
                 points: 10
               },
               {
                 id: 'q2-10',
-                type: 'identification',
-                question: 'What non-pathogenic protozoan organism is listed alongside Bacillus subtilis as an example of a Biosafety Level 1 (BSL-1) agent?',
-                correctAnswer: 'Naegleria gruberi',
-                explanation: 'Naegleria gruberi is a harmless amoeboflagellate used in educational settings classified under BSL-1 (Slide 20).',
+                type: 'enumeration',
+                question: 'Enumerate the two major viral pathogens commonly sought in diagnostic clinical specimens that are classified under Biosafety Level 2 (BSL-2).',
+                correctAnswer: [
+                  'HIV',
+                  'Hepatitis B Virus'
+                ],
+                explanation: 'Slide 21 specifies HIV and Hepatitis B Virus (HBV) along with Salmonella organisms as common BSL-2 etiologic agents.',
                 points: 10
               }
             ]

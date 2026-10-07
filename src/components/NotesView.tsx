@@ -10,6 +10,7 @@ import {
   Edit3, 
   Layers, 
   BookOpen, 
+  HelpCircle,
   ArrowRight,
   X,
   VolumeX,
@@ -298,6 +299,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Flashcards</span>
+            </button>
+            <button
+              onClick={() => onNavigateToTab('quiz')}
+              className="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 text-slate-500 hover:text-slate-900"
+              title="Go to questions"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Questions ({currentReviewer.questions.length})</span>
             </button>
           </div>
 

@@ -19,13 +19,10 @@ import { NotesView } from './components/NotesView';
 import { QuizView } from './components/QuizView';
 import { UploadModal } from './components/UploadModal';
 import { 
-  ArrowLeft, 
-  BookOpen, 
-  HelpCircle, 
-  LayoutGrid, 
   Menu,
   PanelLeft,
-  PanelLeftClose
+  PanelLeftClose,
+  Home
 } from 'lucide-react';
 
 function AppContent() {
@@ -34,7 +31,7 @@ function AppContent() {
   // Load exams from localStorage or fallback to defaults
   const [exams, setExams] = useState<Exam[]>(() => {
     try {
-      const saved = localStorage.getItem('bloomie_microbio_v1');
+      const saved = localStorage.getItem('bloomie_microbio_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -60,7 +57,7 @@ function AppContent() {
   // Sync exams to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('bloomie_microbio_v1', JSON.stringify(exams));
+      localStorage.setItem('bloomie_microbio_v2', JSON.stringify(exams));
     } catch (e) {
       console.warn('Failed to save exams', e);
     }
@@ -317,100 +314,44 @@ function AppContent() {
 
           {/* Main Workspace Area */}
           <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-            {/* Top Workspace Header Bar */}
-            <header className="h-16 px-4 sm:px-8 flex items-center justify-between border-b border-[#F0E6E4] bg-white/90 backdrop-blur-sm sticky top-0 z-20">
-              {/* Left Controls: Retract/Expand Toggle + Clean Breadcrumbs */}
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                {/* Mobile Hamburger to open Subjects Sidebar */}
+            {/* Top Workspace Header Bar (Ultra Minimal: Sidebar Button + Mini Home Button + Theme Button) */}
+            <header className="h-14 px-4 sm:px-6 flex items-center justify-between border-b border-[#F0E6E4] bg-white/90 backdrop-blur-sm sticky top-0 z-20">
+              {/* Left Controls: Sidebar Toggle + Mini Home Button */}
+              <div className="flex items-center gap-2">
+                {/* Mobile Hamburger to open Subjects Sidebar Drawer */}
                 <button
                   onClick={() => setIsMobileDrawerOpen(true)}
-                  className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                  title="Open subjects drawer"
+                  className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  title="Open sidebar"
                 >
                   <Menu className="w-4 h-4" />
                 </button>
 
-                {/* Desktop Retract/Expand Toggle */}
+                {/* Desktop Retract/Expand Sidebar Toggle */}
                 <button
                   onClick={() => setIsSidebarRetracted(!isSidebarRetracted)}
-                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer text-xs font-medium"
-                  title={isSidebarRetracted ? "Expand sidebar (show subjects & reviewers)" : "Collapse sidebar"}
+                  className="hidden md:flex p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  title={isSidebarRetracted ? "Show sidebar" : "Hide sidebar"}
                 >
                   {isSidebarRetracted ? (
-                    <>
-                      <PanelLeft className="w-4 h-4" />
-                      <span className="hidden lg:inline text-[11px]">Show Sidebar</span>
-                    </>
+                    <PanelLeft className="w-4 h-4" />
                   ) : (
-                    <>
-                      <PanelLeftClose className="w-4 h-4" />
-                      <span className="hidden lg:inline text-[11px]">Hide Sidebar</span>
-                    </>
+                    <PanelLeftClose className="w-4 h-4" />
                   )}
                 </button>
 
-                {/* Minimal Clean Breadcrumbs */}
-                <div className="flex items-center gap-2 text-xs text-slate-400 min-w-0">
-                  <button
-                    onClick={() => setPageView('home')}
-                    className="hover:text-slate-900 flex items-center gap-1 font-semibold transition-colors cursor-pointer text-slate-500 shrink-0"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Exams</span>
-                  </button>
-                  <span className="text-slate-300">/</span>
-                  <span className="truncate font-semibold text-slate-800 text-xs sm:text-sm max-w-[200px] sm:max-w-xs md:max-w-md">
-                    {currentExam.title}
-                  </span>
-                </div>
+                {/* Mini Home Button */}
+                <button
+                  onClick={() => setPageView('home')}
+                  className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  title="Home"
+                >
+                  <Home className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Right Controls: Tab Switcher & Theme Selector */}
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <div className="bg-[#FAF7F6] border border-slate-200 p-1 rounded-2xl flex items-center">
-                  <button
-                    onClick={() => setWorkspaceTab('overview')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      workspaceTab === 'overview'
-                        ? 'bg-white shadow-2xs font-bold text-slate-900'
-                        : 'text-slate-500 hover:text-slate-900'
-                    }`}
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Overview</span>
-                  </button>
-
-                  {currentReviewer && (
-                    <>
-                      <button
-                        onClick={() => setWorkspaceTab('notes')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          workspaceTab === 'notes'
-                            ? 'bg-white shadow-2xs font-bold'
-                            : 'text-slate-500 hover:text-slate-900'
-                        }`}
-                        style={{ color: workspaceTab === 'notes' ? theme.primary : undefined }}
-                      >
-                        <BookOpen className="w-3.5 h-3.5" />
-                        <span>Notes ({currentReviewer.notes.length})</span>
-                      </button>
-
-                      <button
-                        onClick={() => setWorkspaceTab('quiz')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          workspaceTab === 'quiz'
-                            ? 'bg-white shadow-2xs font-bold'
-                            : 'text-slate-500 hover:text-slate-900'
-                        }`}
-                        style={{ color: workspaceTab === 'quiz' ? theme.primary : undefined }}
-                      >
-                        <HelpCircle className="w-3.5 h-3.5" />
-                        <span>Questions ({currentReviewer.questions.length})</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-
+              {/* Right Controls: Theme Selector */}
+              <div className="flex items-center">
                 <ThemePicker />
               </div>
             </header>
