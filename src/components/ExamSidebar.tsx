@@ -10,7 +10,9 @@ import {
   HelpCircle,
   Plus,
   Eye,
-  Award
+  Award,
+  PanelLeftClose,
+  X
 } from 'lucide-react';
 import { Exam, Subject, Reviewer, WorkspaceTab } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
@@ -24,10 +26,8 @@ interface ExamSidebarProps {
   onSelectReviewer: (subjectId: string, reviewerId: string, preferredTab?: WorkspaceTab) => void;
   onSelectTab: (tab: WorkspaceTab) => void;
   onBackToHome: () => void;
-  isDeveloperMode: boolean;
-  onOpenDeveloperModal: () => void;
-  onOpenAddReviewerModal?: () => void;
   onCloseMobileDrawer?: () => void;
+  onToggleRetract?: () => void;
 }
 
 export const ExamSidebar: React.FC<ExamSidebarProps> = ({
@@ -38,10 +38,8 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
   onSelectReviewer,
   onSelectTab,
   onBackToHome,
-  isDeveloperMode,
-  onOpenDeveloperModal,
-  onOpenAddReviewerModal,
-  onCloseMobileDrawer
+  onCloseMobileDrawer,
+  onToggleRetract
 }) => {
   const { theme } = useFlowerTheme();
   const [filterQuery, setFilterQuery] = useState('');
@@ -125,25 +123,37 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
     <aside className="w-80 min-w-[20rem] bg-white border-r border-[#EAE2E0] flex flex-col justify-between h-screen sticky top-0 z-30 select-none">
       {/* Scrollable Subjects & Reviewers Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {/* Top Header: Back to Home + Close for Mobile Drawer */}
+        {/* Top Header: Back to Home + Retract Toggle + Close for Mobile Drawer */}
         <div className="flex items-center justify-between">
           <button
             onClick={onBackToHome}
-            className="flex items-center gap-2 text-xs font-semibold text-[#8C8385] hover:text-[#2D2A2E] px-2 py-1.5 rounded-xl hover:bg-[#FAF4F3] transition-colors cursor-pointer group"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 px-2 py-1 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
           >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-            <span>All Exams</span>
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Exams</span>
           </button>
 
-          {onCloseMobileDrawer && (
-            <button
-              onClick={onCloseMobileDrawer}
-              className="p-1.5 rounded-xl text-[#8C8385] hover:text-[#2D2A2E] hover:bg-[#FAF4F3] transition-colors md:hidden"
-              title="Close subjects drawer"
-            >
-              <span className="text-sm font-bold">✕</span>
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {onToggleRetract && (
+              <button
+                onClick={onToggleRetract}
+                className="hidden md:flex p-1.5 rounded-xl text-[#8C8385] hover:text-[#2D2A2E] hover:bg-[#FAF4F3] transition-colors cursor-pointer"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )}
+
+            {onCloseMobileDrawer && (
+              <button
+                onClick={onCloseMobileDrawer}
+                className="p-1.5 rounded-xl text-[#8C8385] hover:text-[#2D2A2E] hover:bg-[#FAF4F3] transition-colors md:hidden cursor-pointer"
+                title="Close subjects drawer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filter Input for Subjects and Reviewers */}
@@ -152,16 +162,16 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
             type="text"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            placeholder="Search all subjects..."
-            className="w-full text-xs pl-8 pr-3 py-2 rounded-xl bg-[#FAF6F5] border border-[#EFE5E3] focus:outline-none focus:border-[#CBD5E1] text-[#2D2A2E] placeholder-[#94A3B8]"
+            placeholder="Search..."
+            className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-[#FAF6F5] border border-[#EFE5E3] focus:outline-none focus:border-[#CBD5E1] text-[#2D2A2E] placeholder-[#94A3B8]"
           />
-          <div className="absolute left-2.5 top-2.5 text-[#94A3B8]">
+          <div className="absolute left-2.5 top-2 text-[#94A3B8]">
             <BookOpen className="w-3.5 h-3.5" />
           </div>
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
-              className="absolute right-2.5 top-2 text-xs text-[#94A3B8] hover:text-[#2D2A2E]"
+              className="absolute right-2.5 top-1.5 text-xs text-[#94A3B8] hover:text-[#2D2A2E]"
             >
               ✕
             </button>
@@ -294,18 +304,6 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
             })
           )}
         </div>
-
-        {/* Developer Action: Add Reviewer */}
-        {isDeveloperMode && onOpenAddReviewerModal && (
-          <button
-            onClick={onOpenAddReviewerModal}
-            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-xl transition-colors cursor-pointer mt-4"
-            style={{ backgroundColor: theme.primaryLight, color: theme.primary }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Add Reviewer (Dev)</span>
-          </button>
-        )}
       </div>
 
       {/* Bottom Footer: Active Reviewer Reading Progress & Accuracy */}
@@ -326,7 +324,7 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
               <div className="flex justify-between items-center text-[10px] mb-1 text-[#64748B]">
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" />
-                  <span>Notes Scrolled</span>
+                  <span>Read</span>
                 </span>
                 <span className="font-bold" style={{ color: theme.primary }}>
                   {activeReviewer.notesScrollProgress || 0}%
@@ -351,28 +349,18 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
               </span>
               {activeReviewer.quizAccuracy?.completed ? (
                 <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                  {activeReviewer.quizAccuracy.scorePercent}% ({activeReviewer.quizAccuracy.correctCount}/{activeReviewer.quizAccuracy.totalCount})
+                  {activeReviewer.quizAccuracy.scorePercent}%
                 </span>
               ) : (
-                <span className="text-[#94A3B8]">Quiz pending</span>
+                <span className="text-[#94A3B8]">Pending</span>
               )}
             </div>
           </div>
         )}
 
-        {/* Theme Picker & Dev Access in Footer */}
-        <div className="pt-2 border-t border-[#F1E9E7] flex justify-between items-center text-[10px]">
+        {/* Theme Picker in Footer */}
+        <div className="pt-2 border-t border-[#F1E9E7] flex justify-end items-center">
           <ThemePicker />
-          <button
-            onClick={onOpenDeveloperModal}
-            className={`font-semibold px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
-              isDeveloperMode
-                ? 'bg-emerald-100 text-emerald-800'
-                : 'text-[#94A3B8] hover:text-[#0F172A]'
-            }`}
-          >
-            {isDeveloperMode ? '👨‍💻 Dev' : 'Dev 🔒'}
-          </button>
         </div>
       </div>
     </aside>
