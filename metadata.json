@@ -1,0 +1,6 @@
+{
+  "name": "Bloomie - Minimalist Study Reviewer",
+  "description": "A calm, minimalist study reviewer with separate notes and quiz modes, soft pastel aesthetics, test scheduling, and streak tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
