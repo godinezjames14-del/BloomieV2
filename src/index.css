@@ -12,8 +12,8 @@
 
 body {
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #FAF6F4;
-  color: #2D2A2E;
+  background-color: var(--color-bloom-bg, #FCF4F6);
+  color: var(--color-bloom-font-primary, #2D2A2E);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -30,28 +30,74 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #E8DFDC;
+  background: var(--color-bloom-border-subtle, #E8DFDC);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #D5C8C4;
+  background: var(--color-bloom-border, #D5C8C4);
+}
+
+/* =========================================================================
+   LIGHT & UNIVERSAL THEME ADAPTATIONS
+   White backgrounds are tinted to each theme's lighter shade (no harsh stark white).
+   Overly white fonts are softened to a delicate lighter shade of the theme.
+   ========================================================================= */
+
+.bg-white,
+header.bg-white\/95,
+header.bg-white\/80,
+.bg-white\/95,
+.bg-white\/80,
+[class*="bg-white/"] {
+  background-color: var(--color-bloom-card, #FFF8FA);
+}
+
+aside {
+  background-color: var(--color-bloom-card, #FFF8FA);
+  border-color: var(--color-bloom-border-subtle, #F7D6DF);
+}
+
+/* Subtle backgrounds also blend with the theme's lighter shade */
+.bg-slate-50,
+.bg-\[\#FCF8F7\],
+.bg-\[\#FCFAF9\],
+.bg-\[\#FAF6F5\],
+.bg-\[\#FAF6F4\],
+.bg-\[\#FAF4F3\],
+.bg-\[\#FFFBFB\] {
+  background-color: var(--color-bloom-bg, #FCF4F6);
+}
+
+/* Borders adapt cleanly to subtle theme border */
+.border-\[\#F0E6E4\],
+.border-\[\#EFE5E3\],
+.border-\[\#EAE2E0\],
+.border-\[\#F0DFE2\],
+.border-\[\#F5ECE9\],
+.border-\[\#F5ECE9\]\/60 {
+  border-color: var(--color-bloom-border-subtle, #F7D6DF);
+}
+
+/* Overly white fonts anywhere in the app become the theme's lighter tint (no blinding pure white) */
+.text-white {
+  color: var(--color-bloom-text-on-primary, #FFF5F8);
 }
 
 /* =========================================================================
    PER-COLOR INVERTED THEME (Dark Inverted palettes tailored per color family)
-   Inverts background to deep nocturnal tones and fonts to crisp light tones,
+   Inverts background to deep nocturnal tones and fonts to lighter theme shades,
    tinted uniquely for Cherry Blossom, Lavender, Hydrangea, Buttercup & Water Lily.
    ========================================================================= */
 
 html.theme-inverted {
   color-scheme: dark;
   background-color: var(--color-bloom-bg, #0F1117);
-  color: #E2E8F0;
+  color: var(--color-bloom-font-body, #F9A8D4);
 }
 
 html.theme-inverted body {
   background-color: var(--color-bloom-bg, #0F1117) !important;
-  color: #E2E8F0 !important;
+  color: var(--color-bloom-font-body, #F9A8D4) !important;
 }
 
 /* Invert white/pale cards, headers, and surfaces using each theme's dark card color */
@@ -59,12 +105,12 @@ html.theme-inverted .bg-white,
 html.theme-inverted header.bg-white\/95,
 html.theme-inverted header.bg-white\/80,
 html.theme-inverted [class*="bg-white/"] {
-  background-color: var(--color-bloom-card, #181A22) !important;
+  background-color: var(--color-bloom-card, #1D1219) !important;
 }
 
 html.theme-inverted aside {
-  background-color: var(--color-bloom-card, #14161F) !important;
-  border-color: var(--color-bloom-border, #262936) !important;
+  background-color: var(--color-bloom-card, #1D1219) !important;
+  border-color: var(--color-bloom-border, #701A45) !important;
 }
 
 /* Subtle backgrounds adapt to theme surface tone */
@@ -76,7 +122,7 @@ html.theme-inverted .bg-\[\#FAF6F5\],
 html.theme-inverted .bg-\[\#FAF6F4\],
 html.theme-inverted .bg-\[\#FAF4F3\],
 html.theme-inverted .bg-\[\#FFFBFB\] {
-  background-color: var(--color-bloom-card, #222530) !important;
+  background-color: var(--color-bloom-card, #2A1724) !important;
   opacity: 0.95;
 }
 
@@ -84,50 +130,58 @@ html.theme-inverted .bg-\[\#E0F4F4\] {
   background-color: rgba(13, 148, 136, 0.2) !important;
 }
 
-/* Invert Dark Headings & Primary Text to crisp light white */
+/* Invert Dark Headings & Primary Text to theme-consistent light pastel font (not harsh stark cold white) */
 html.theme-inverted .text-slate-900,
 html.theme-inverted .text-\[\#2D2A2E\],
 html.theme-inverted .text-\[\#231F20\],
-html.theme-inverted .text-\[\#0F172A\] {
-  color: #F8FAFC !important;
+html.theme-inverted .text-\[\#0F172A\],
+html.theme-inverted h1,
+html.theme-inverted h2,
+html.theme-inverted h3,
+html.theme-inverted h4 {
+  color: var(--color-bloom-font-primary, #FDF2F8) !important;
 }
 
-/* Invert Body Text to readable slate-200 */
+/* Invert Body Text to theme-consistent readable light tone */
 html.theme-inverted .text-slate-800,
 html.theme-inverted .text-slate-700,
 html.theme-inverted .text-\[\#334155\],
 html.theme-inverted .text-\[\#475569\],
-html.theme-inverted .text-\[\#443E40\] {
-  color: #E2E8F0 !important;
+html.theme-inverted .text-\[\#443E40\],
+html.theme-inverted p,
+html.theme-inverted article {
+  color: var(--color-bloom-font-body, #F9A8D4) !important;
 }
 
-/* Invert Secondary/Muted Text */
+/* Invert Secondary/Muted Text to theme-consistent muted tone */
 html.theme-inverted .text-slate-600,
 html.theme-inverted .text-slate-500,
 html.theme-inverted .text-\[\#645E60\],
 html.theme-inverted .text-\[\#8C8385\],
-html.theme-inverted .text-\[\#94A3B8\] {
-  color: #94A3B8 !important;
-}
-
+html.theme-inverted .text-\[\#94A3B8\],
 html.theme-inverted .text-slate-400 {
-  color: #64748B !important;
+  color: var(--color-bloom-font-muted, #DDA5BC) !important;
 }
 
 html.theme-inverted .text-\[\#0E7490\] {
-  color: #38BDF8 !important;
+  color: var(--color-bloom-primary, #F472B6) !important;
 }
 
 /* Invert Borders to theme border with fallback */
 html.theme-inverted .border-slate-100,
 html.theme-inverted .border-slate-200,
 html.theme-inverted .border-\[\#F0E6E4\],
-html.theme-inverted .border-\[\#EAE2E0\],
 html.theme-inverted .border-\[\#EFE5E3\],
+html.theme-inverted .border-\[\#EAE2E0\],
 html.theme-inverted .border-\[\#F0DFE2\],
 html.theme-inverted .border-\[\#F5ECE9\],
 html.theme-inverted .border-\[\#F5ECE9\]\/60 {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--color-bloom-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* Overly white font on buttons / badges */
+html.theme-inverted .text-white {
+  color: var(--color-bloom-text-on-primary, #FDF2F8) !important;
 }
 
 /* Inputs, textareas, selects */
@@ -135,13 +189,13 @@ html.theme-inverted input,
 html.theme-inverted select,
 html.theme-inverted textarea {
   background-color: var(--color-bloom-bg, #161822) !important;
-  color: #F8FAFC !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: var(--color-bloom-font-primary, #FDF2F8) !important;
+  border-color: var(--color-bloom-border, rgba(255, 255, 255, 0.15)) !important;
 }
 
 html.theme-inverted input::placeholder,
 html.theme-inverted textarea::placeholder {
-  color: #64748B !important;
+  color: var(--color-bloom-font-muted, #DDA5BC) !important;
 }
 
 /* Consistent Theme-Aware Highlighting & Selection */

@@ -33,11 +33,13 @@ export const ThemePicker: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-medium transition-all shadow-2xs cursor-pointer active:scale-95 ${
           isInverted
-            ? 'border-white/15 text-slate-100 hover:border-white/30'
-            : 'bg-white border-[#EFE5E3] hover:border-[#DDD] text-[#443E40]'
+            ? 'border-white/15 hover:border-white/30'
+            : 'hover:border-slate-300'
         }`}
         style={{
-          backgroundColor: isInverted ? theme.bgCard : '#FFFFFF'
+          backgroundColor: theme.bgCard,
+          borderColor: isInverted ? theme.primaryBorder : theme.borderSubtle,
+          color: isInverted ? theme.fontPrimary : theme.fontBody
         }}
         title={`Theme: ${theme.name} (${isInverted ? 'Dark' : 'Light'})`}
         aria-label="Select Color Theme"
@@ -66,9 +68,9 @@ export const ThemePicker: React.FC = () => {
         <div 
           className="absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-2xl shadow-xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-100"
           style={{
-            backgroundColor: isInverted ? theme.bgCard : '#FFFFFF',
-            borderColor: isInverted ? theme.primaryBorder : '#EAE2E0',
-            color: isInverted ? '#F1F5F9' : '#231F20'
+            backgroundColor: theme.bgCard,
+            borderColor: theme.primaryBorder,
+            color: isInverted ? theme.fontPrimary : theme.fontPrimary
           }}
         >
           {/* Header */}
@@ -85,9 +87,13 @@ export const ThemePicker: React.FC = () => {
               onClick={() => setInverted(false)}
               className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 !isInverted
-                  ? 'bg-white shadow-xs text-slate-900 font-semibold'
+                  ? 'shadow-xs font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
+              style={{
+                backgroundColor: !isInverted ? theme.bgCard : undefined,
+                color: !isInverted ? theme.primary : undefined
+              }}
             >
               <Sun className="w-3.5 h-3.5 text-amber-500" />
               <span>Light</span>
@@ -97,9 +103,13 @@ export const ThemePicker: React.FC = () => {
               onClick={() => setInverted(true)}
               className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 isInverted
-                  ? 'bg-white/20 shadow-xs text-white font-semibold'
+                  ? 'shadow-xs font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
+              style={{
+                backgroundColor: isInverted ? 'rgba(255,255,255,0.15)' : undefined,
+                color: isInverted ? theme.fontPrimary : undefined
+              }}
             >
               <Moon className="w-3.5 h-3.5 text-indigo-400" />
               <span>Dark</span>

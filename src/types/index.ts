@@ -89,12 +89,17 @@ export interface FlowerTheme {
   primaryHover: string;
   primaryLight: string; // soft pill background
   primaryBorder: string;
-  bgPage: string; // page background
-  bgCard: string; // card / surface background
+  borderSubtle: string; // subtle surface border matching the theme
+  bgPage: string; // page background (tinted to theme)
+  bgCard: string; // card / surface background (lighter shade of theme, no stark white)
   textPrimary: string;
   isInverted: boolean;
   highlightBg: string; // Background for highlighted text / marks
   highlightText: string; // Text color for highlighted text / marks
   highlightBorder: string; // Border color for highlighted text / marks
   highlightCardBg: string; // Background tint for highlighted note sections
+  fontPrimary: string; // Primary font color (in dark mode: lighter pastel shade of theme; in light mode: deep contrast)
+  fontBody: string; // Body font color (in dark mode: lighter shade of theme; in light mode: readable slate)
+  fontMuted: string; // Muted font color (in dark mode: theme-tinted muted shade)
+  textOnPrimary: string; // Font color for text-white / buttons (lighter shade of theme, not blinding pure white)
 }
