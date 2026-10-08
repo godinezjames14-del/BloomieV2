@@ -14,6 +14,7 @@ body {
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #FAF6F4;
   color: #2D2A2E;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .font-serif {
@@ -36,3 +37,153 @@ body {
   background: #D5C8C4;
 }
 
+/* =========================================================================
+   PER-COLOR INVERTED THEME (Dark Inverted palettes tailored per color family)
+   Inverts background to deep nocturnal tones and fonts to crisp light tones,
+   tinted uniquely for Cherry Blossom, Lavender, Hydrangea, Buttercup & Water Lily.
+   ========================================================================= */
+
+html.theme-inverted {
+  color-scheme: dark;
+  background-color: var(--color-bloom-bg, #0F1117);
+  color: #E2E8F0;
+}
+
+html.theme-inverted body {
+  background-color: var(--color-bloom-bg, #0F1117) !important;
+  color: #E2E8F0 !important;
+}
+
+/* Invert white/pale cards, headers, and surfaces using each theme's dark card color */
+html.theme-inverted .bg-white,
+html.theme-inverted header.bg-white\/95,
+html.theme-inverted header.bg-white\/80,
+html.theme-inverted [class*="bg-white/"] {
+  background-color: var(--color-bloom-card, #181A22) !important;
+}
+
+html.theme-inverted aside {
+  background-color: var(--color-bloom-card, #14161F) !important;
+  border-color: var(--color-bloom-border, #262936) !important;
+}
+
+/* Subtle backgrounds adapt to theme surface tone */
+html.theme-inverted .bg-slate-50,
+html.theme-inverted .bg-slate-100,
+html.theme-inverted .bg-\[\#FCF8F7\],
+html.theme-inverted .bg-\[\#FCFAF9\],
+html.theme-inverted .bg-\[\#FAF6F5\],
+html.theme-inverted .bg-\[\#FAF6F4\],
+html.theme-inverted .bg-\[\#FAF4F3\],
+html.theme-inverted .bg-\[\#FFFBFB\] {
+  background-color: var(--color-bloom-card, #222530) !important;
+  opacity: 0.95;
+}
+
+html.theme-inverted .bg-\[\#E0F4F4\] {
+  background-color: rgba(13, 148, 136, 0.2) !important;
+}
+
+/* Invert Dark Headings & Primary Text to crisp light white */
+html.theme-inverted .text-slate-900,
+html.theme-inverted .text-\[\#2D2A2E\],
+html.theme-inverted .text-\[\#231F20\],
+html.theme-inverted .text-\[\#0F172A\] {
+  color: #F8FAFC !important;
+}
+
+/* Invert Body Text to readable slate-200 */
+html.theme-inverted .text-slate-800,
+html.theme-inverted .text-slate-700,
+html.theme-inverted .text-\[\#334155\],
+html.theme-inverted .text-\[\#475569\],
+html.theme-inverted .text-\[\#443E40\] {
+  color: #E2E8F0 !important;
+}
+
+/* Invert Secondary/Muted Text */
+html.theme-inverted .text-slate-600,
+html.theme-inverted .text-slate-500,
+html.theme-inverted .text-\[\#645E60\],
+html.theme-inverted .text-\[\#8C8385\],
+html.theme-inverted .text-\[\#94A3B8\] {
+  color: #94A3B8 !important;
+}
+
+html.theme-inverted .text-slate-400 {
+  color: #64748B !important;
+}
+
+html.theme-inverted .text-\[\#0E7490\] {
+  color: #38BDF8 !important;
+}
+
+/* Invert Borders to theme border with fallback */
+html.theme-inverted .border-slate-100,
+html.theme-inverted .border-slate-200,
+html.theme-inverted .border-\[\#F0E6E4\],
+html.theme-inverted .border-\[\#EAE2E0\],
+html.theme-inverted .border-\[\#EFE5E3\],
+html.theme-inverted .border-\[\#F0DFE2\],
+html.theme-inverted .border-\[\#F5ECE9\],
+html.theme-inverted .border-\[\#F5ECE9\]\/60 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Inputs, textareas, selects */
+html.theme-inverted input,
+html.theme-inverted select,
+html.theme-inverted textarea {
+  background-color: var(--color-bloom-bg, #161822) !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.theme-inverted input::placeholder,
+html.theme-inverted textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* Consistent Theme-Aware Highlighting & Selection */
+mark, .highlight-mark {
+  background-color: var(--color-bloom-highlight-bg, #FCE7F3);
+  color: var(--color-bloom-highlight-text, #9D174D);
+  border-color: var(--color-bloom-highlight-border, #FBCFE8);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+html.theme-inverted mark,
+html.theme-inverted .highlight-mark {
+  background-color: var(--color-bloom-highlight-bg, rgba(244, 114, 182, 0.24)) !important;
+  color: var(--color-bloom-highlight-text, #FBCFE8) !important;
+  border-color: var(--color-bloom-highlight-border, rgba(244, 114, 182, 0.45)) !important;
+}
+
+/* User text selection color matching the active theme */
+::selection {
+  background-color: var(--color-bloom-highlight-bg, #FCE7F3);
+  color: var(--color-bloom-highlight-text, #9D174D);
+}
+
+::-moz-selection {
+  background-color: var(--color-bloom-highlight-bg, #FCE7F3);
+  color: var(--color-bloom-highlight-text, #9D174D);
+}
+
+/* Inverted Scrollbar */
+html.theme-inverted ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+html.theme-inverted ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Inverted Quiz Box Styles */
+html.theme-inverted .bg-emerald-50 {
+  background-color: #064E3B !important;
+  color: #A7F3D0 !important;
+}
+html.theme-inverted .bg-rose-50 {
+  background-color: #4C0519 !important;
+  color: #FECDD3 !important;
+}

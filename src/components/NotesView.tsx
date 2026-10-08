@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Plus, 
   Search, 
   Highlighter, 
   Volume2, 
@@ -8,17 +7,13 @@ import {
   Check, 
   Trash2, 
   Edit3, 
-  Layers, 
   BookOpen, 
-  HelpCircle,
   ArrowRight,
-  X,
   VolumeX,
-  RotateCw,
-  Eye,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from 'lucide-react';
-import { NoteItem, Reviewer, ActiveTab, Subject, WorkspaceTab } from '../types';
+import { NoteItem, Reviewer, ActiveTab, Subject } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
 import { 
   HierarchyOfControlsDiagram, 
@@ -34,59 +29,149 @@ interface NotesViewProps {
   currentSubject?: Subject;
   allSubjects?: Subject[];
   examTitle?: string;
-  onSelectReviewerAndTab?: (subjectId: string, reviewerId: string, tab: WorkspaceTab) => void;
   onUpdateNotes: (notes: NoteItem[]) => void;
   onNavigateToTab: (tab: ActiveTab) => void;
   onUpdateScrollProgress?: (progress: number) => void;
 }
 
+/**
+ * Clean Rich Formatted Note Content:
+ * - Completely strips any hashtags (#, ##, ###, or #tag) from notes
+ * - Highlights important things and key terms formatted with **bold** using clean highlighters
+ * - Formats subheadings, numbered lists, and bullet items with spacious breathing room
+ * - Formats clean typography and clean indentation
+ */
+const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
+  const { theme } = useFlowerTheme();
+  
+  // Strip hashtags from headings and hashtag tags (#tag -> tag, ### Heading -> Heading)
+  const cleanedContent = content
+    .replace(/^#{1,6}\s+/gm, '') // remove markdown heading hashtags
+    .replace(/#([a-zA-Z0-9_\-]+)/g, '$1'); // remove hashtag signs from inline words/tags
+
+  const lines = cleanedContent.split('\n');
+
+  // Helper to render inline highlighted text with **bold**
+  const renderInlineFormatted = (text: string) => {
+    // Also remove any remaining stray # in text
+    const noHashText = text.replace(/#/g, '');
+    const parts = noHashText.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const inner = part.slice(2, -2);
+        return (
+          <mark
+            key={i}
+            className="highlight-mark font-semibold px-1.5 py-0.5 rounded tracking-normal border inline-block my-0.5 transition-colors duration-200"
+            style={{
+              backgroundColor: theme.highlightBg,
+              color: theme.highlightText,
+              borderColor: theme.highlightBorder
+            }}
+          >
+            {inner}
+          </mark>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  return (
+    <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} className="h-2" />;
+        }
+
+        // Section header / Category title like "• DONNING SEQUENCE (Putting On):" or "DONNING SEQUENCE:"
+        if (
+          ((trimmed.startsWith('• ') || trimmed.startsWith('— ')) && trimmed.endsWith(':')) ||
+          (trimmed.toUpperCase() === trimmed && trimmed.length > 3 && trimmed.endsWith(':'))
+        ) {
+          const title = trimmed.replace(/^[•—]\s*/, '').replace(/:$/, '');
+          return (
+            <div key={idx} className="pt-3.5 pb-1">
+              <span className="inline-block text-xs font-bold tracking-wide text-slate-800 uppercase bg-slate-100 border border-slate-200/80 px-3 py-1 rounded-lg">
+                {title}
+              </span>
+            </div>
+          );
+        }
+
+        // Numbered list item: "1. Hand Hygiene: ..." or "  1. Hand Hygiene: ..."
+        const numberedMatch = line.match(/^\s*(\d+)\.\s+(.*)$/);
+        if (numberedMatch) {
+          const num = numberedMatch[1];
+          const text = numberedMatch[2];
+          return (
+            <div key={idx} className="flex items-start gap-3 pl-1 sm:pl-2 py-0.5">
+              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5 border border-slate-200 shadow-2xs">
+                {num}
+              </span>
+              <div className="flex-1 leading-relaxed">
+                {renderInlineFormatted(text)}
+              </div>
+            </div>
+          );
+        }
+
+        // Sub-bullet point: "  - Text" or "- Text"
+        if (line.match(/^\s*[-]\s+(.*)$/)) {
+          const text = line.replace(/^\s*[-]\s+/, '');
+          return (
+            <div key={idx} className="flex items-start gap-2.5 pl-5 sm:pl-7 text-slate-600 py-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0 mt-2" />
+              <div className="flex-1 leading-relaxed">
+                {renderInlineFormatted(text)}
+              </div>
+            </div>
+          );
+        }
+
+        // Main bullet point: "• Text"
+        if (trimmed.startsWith('• ')) {
+          const text = trimmed.replace(/^•\s*/, '');
+          return (
+            <div key={idx} className="flex items-start gap-3 pl-1 py-0.5">
+              <span className="w-2 h-2 rounded-full bg-teal-600/80 shrink-0 mt-1.5" />
+              <div className="flex-1 leading-relaxed">
+                {renderInlineFormatted(text)}
+              </div>
+            </div>
+          );
+        }
+
+        // Regular line / paragraph
+        return (
+          <p key={idx} className="leading-relaxed py-0.5">
+            {renderInlineFormatted(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 export const NotesView: React.FC<NotesViewProps> = ({
   currentReviewer,
   currentSubject,
   onUpdateNotes,
-  onNavigateToTab,
-  onUpdateScrollProgress
+  onNavigateToTab
 }) => {
   const { theme } = useFlowerTheme();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'linear' | 'flashcards'>('linear');
-  const [activeFlashcardIndex, setActiveFlashcardIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
   const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null);
   const [speakingNoteId, setSpeakingNoteId] = useState<string | null>(null);
 
-  // Track scroll depth
-  const [scrollDepth, setScrollDepth] = useState<number>(() => currentReviewer.notesScrollProgress || 0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (docHeight > 50) {
-        const scrolled = Math.min(100, Math.max(0, Math.round((window.scrollY / docHeight) * 100)));
-        setScrollDepth(prev => {
-          const max = Math.max(prev, scrolled);
-          if (max > (currentReviewer.notesScrollProgress || 0)) {
-            onUpdateScrollProgress?.(max);
-          }
-          return max;
-        });
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentReviewer.id, currentReviewer.notesScrollProgress, onUpdateScrollProgress]);
-
-  // New Note Modal
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // Edit Note Modal
   const [editingNote, setEditingNote] = useState<NoteItem | null>(null);
-  const [noteFormTitle, setNoteFormTitle] = useState('');
-  const [noteFormCategory, setNoteFormCategory] = useState<NoteItem['category']>('Concept');
-  const [noteFormContent, setNoteFormContent] = useState('');
-  const [noteFormTags, setNoteFormTags] = useState('');
-  const [noteFormImportance, setNoteFormImportance] = useState<NoteItem['importance']>('high');
+  const [editFormTitle, setEditFormTitle] = useState('');
+  const [editFormCategory, setEditFormCategory] = useState<NoteItem['category']>('Concept');
+  const [editFormContent, setEditFormContent] = useState('');
+  const [editFormTags, setEditFormTags] = useState('');
 
   // Categories list
   const categories = ['All', 'Concept', 'Definition', 'Formula', 'Key Takeaway', 'Summary'];
@@ -111,7 +196,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // Delete note
   const handleDeleteNote = (id: string) => {
-    if (confirm('Delete this note?')) {
+    if (confirm('Delete this note section?')) {
       const updated = currentReviewer.notes.filter(n => n.id !== id);
       onUpdateNotes(updated);
     }
@@ -145,63 +230,35 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // Open Edit Modal
   const openEditModal = (note: NoteItem) => {
     setEditingNote(note);
-    setNoteFormTitle(note.title);
-    setNoteFormCategory(note.category);
-    setNoteFormContent(note.content);
-    setNoteFormTags(note.tags.join(', '));
-    setNoteFormImportance(note.importance);
-    setIsAddModalOpen(true);
+    setEditFormTitle(note.title);
+    setEditFormCategory(note.category);
+    setEditFormContent(note.content);
+    setEditFormTags(note.tags.join(', '));
   };
 
-  // Open Create Modal
-  const openCreateModal = () => {
-    setEditingNote(null);
-    setNoteFormTitle('');
-    setNoteFormCategory('Concept');
-    setNoteFormContent('');
-    setNoteFormTags('');
-    setNoteFormImportance('high');
-    setIsAddModalOpen(true);
-  };
-
-  // Save Note
-  const handleSaveNoteForm = (e: React.FormEvent) => {
+  // Save Edit Note
+  const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!noteFormTitle.trim() || !noteFormContent.trim()) return;
+    if (!editingNote || !editFormTitle.trim() || !editFormContent.trim()) return;
 
-    const tagsArray = noteFormTags
+    const tagsArray = editFormTags
       .split(',')
       .map(t => t.trim())
       .filter(t => t.length > 0);
 
-    if (editingNote) {
-      const updated = currentReviewer.notes.map(n =>
-        n.id === editingNote.id
-          ? {
-              ...n,
-              title: noteFormTitle.trim(),
-              category: noteFormCategory,
-              content: noteFormContent.trim(),
-              tags: tagsArray.length > 0 ? tagsArray : n.tags,
-              importance: noteFormImportance
-            }
-          : n
-      );
-      onUpdateNotes(updated);
-    } else {
-      const newNote: NoteItem = {
-        id: `note-${Date.now()}`,
-        title: noteFormTitle.trim(),
-        category: noteFormCategory,
-        content: noteFormContent.trim(),
-        tags: tagsArray.length > 0 ? tagsArray : ['Study Note'],
-        importance: noteFormImportance,
-        highlighted: false
-      };
-      onUpdateNotes([newNote, ...currentReviewer.notes]);
-    }
-
-    setIsAddModalOpen(false);
+    const updated = currentReviewer.notes.map(n =>
+      n.id === editingNote.id
+        ? {
+            ...n,
+            title: editFormTitle.trim(),
+            category: editFormCategory,
+            content: editFormContent.trim(),
+            tags: tagsArray.length > 0 ? tagsArray : n.tags
+          }
+        : n
+    );
+    onUpdateNotes(updated);
+    setEditingNote(null);
   };
 
   // Category Badge
@@ -249,100 +306,29 @@ export const NotesView: React.FC<NotesViewProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6 animate-in fade-in duration-200">
-      {/* Top Document Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0E6E4]">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-            {currentSubject && (
-              <>
-                <span className="font-semibold uppercase tracking-wider text-[11px]" style={{ color: theme.primary }}>
-                  {currentSubject.name}
-                </span>
-                <span>·</span>
-              </>
-            )}
-            <span>Official Lecture Reviewer</span>
-          </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-slate-900">
-            {currentReviewer.name}
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Prepared by Michelle Gie Cabarde-Obial, RMT, DTA, MSMT · {currentReviewer.notes.length} Sections
-          </p>
-        </div>
-
-        {/* View Mode & Add */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="bg-[#FAF7F6] border border-slate-200 p-1 rounded-xl flex items-center text-xs">
-            <button
-              onClick={() => setViewMode('linear')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'linear'
-                  ? 'bg-white shadow-2xs text-slate-900 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Notes</span>
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('flashcards');
-                setIsFlipped(false);
-              }}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'flashcards'
-                  ? 'bg-white shadow-2xs text-slate-900 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Flashcards</span>
-            </button>
-            <button
-              onClick={() => onNavigateToTab('quiz')}
-              className="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 text-slate-500 hover:text-slate-900"
-              title="Go to questions"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Questions ({currentReviewer.questions.length})</span>
-            </button>
-          </div>
-
-          <button
-            onClick={openCreateModal}
-            className="text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-            style={{ backgroundColor: theme.primary }}
-            title="Add a new note to this reviewer"
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 md:px-8 py-5 sm:py-6 space-y-6 animate-in fade-in duration-200">
+      {/* Clean Document Header (No badges, no tabs, no add button) */}
+      <div className="pb-4 border-b border-[#F0E6E4]">
+        {currentSubject && (
+          <span 
+            className="font-semibold uppercase tracking-wider text-[11px] block mb-1 truncate" 
+            style={{ color: theme.primary }}
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Reading Progress Indicator */}
-      <div className="flex items-center justify-between text-xs text-slate-500 py-0.5">
-        <span className="font-medium text-slate-600 flex items-center gap-1.5">
-          <Eye className="w-3.5 h-3.5 text-slate-400" />
-          <span>Read: {scrollDepth}%</span>
-        </span>
-        <div className="w-40 sm:w-64 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${Math.min(100, Math.max(4, scrollDepth))}%`,
-              backgroundColor: theme.primary
-            }}
-          />
-        </div>
+            {currentSubject.name}
+          </span>
+        )}
+        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+          {currentReviewer.name}
+        </h1>
+        <p className="text-xs text-slate-500 mt-1 leading-normal">
+          {currentReviewer.notes.length} Sections
+        </p>
       </div>
 
       {/* Control Bar: Categories & Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+        {/* Category Filter Pills (touch scrollable) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none -mx-1 px-1">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
             return (
@@ -363,7 +349,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
 
         {/* Local Search Input */}
-        <div className="relative w-full sm:w-52">
+        <div className="relative w-full sm:w-52 shrink-0">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
@@ -375,336 +361,223 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       </div>
 
-      {/* MAIN CONTENT: EITHER LINEAR READING DOCUMENT OR FLASHCARDS */}
-      {viewMode === 'linear' ? (
-        <>
-          {filteredNotes.length === 0 ? (
-            <div className="bg-white rounded-2xl p-10 text-center border border-[#F0E6E4] max-w-md mx-auto">
-              <BookOpen className="w-8 h-8 opacity-40 mx-auto mb-2" style={{ color: theme.primary }} />
-              <h3 className="font-serif text-base font-bold text-slate-900">No notes found</h3>
-              <p className="text-xs text-slate-500 mt-1 mb-4">
-                Try clearing your search or add a new study note.
-              </p>
-              <button
-                onClick={openCreateModal}
-                className="text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-                style={{ backgroundColor: theme.primary }}
+      {/* MAIN CONTENT: LINEAR READING DOCUMENT */}
+      {filteredNotes.length === 0 ? (
+        <div className="bg-white rounded-2xl p-8 sm:p-10 text-center border border-[#F0E6E4] max-w-md mx-auto">
+          <BookOpen className="w-8 h-8 opacity-40 mx-auto mb-2" style={{ color: theme.primary }} />
+          <h3 className="font-serif text-base font-bold text-slate-900">No notes found</h3>
+          <p className="text-xs text-slate-500 mt-1 mb-4">
+            Try clearing your search query.
+          </p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('All');
+            }}
+            className="text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+            style={{ backgroundColor: theme.primary }}
+          >
+            Show All Notes
+          </button>
+        </div>
+      ) : (
+        /* LINEAR LECTURE NOTES (NO BOXES/GRID, FLUID EDITORIAL READING SURFACE) */
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#F0E6E4] p-4 sm:p-8 md:p-12 shadow-2xs space-y-10 sm:space-y-12">
+          {filteredNotes.map((note, index) => {
+            const pictureComponent = renderLecturePicture(note);
+
+            return (
+              <article
+                key={note.id}
+                className={`transition-all rounded-2xl ${
+                  note.highlighted ? 'p-4 sm:p-5 ring-1 shadow-2xs' : ''
+                }`}
+                style={{
+                  backgroundColor: note.highlighted ? theme.highlightCardBg : undefined,
+                  borderColor: note.highlighted ? theme.primaryBorder : undefined,
+                  boxShadow: note.highlighted ? `0 0 0 1px ${theme.primaryBorder}, 0 2px 12px ${theme.highlightBg}` : undefined
+                }}
               >
-                Create Note
-              </button>
-            </div>
-          ) : (
-            /* LINEAR LECTURE NOTES (NO BOXES/GRID, FLUID EDITORIAL READING SURFACE) */
-            <div className="bg-white rounded-3xl border border-[#F0E6E4] p-6 sm:p-10 md:p-12 shadow-2xs space-y-12">
-              {filteredNotes.map((note, index) => {
-                const pictureComponent = renderLecturePicture(note);
+                {/* Section Header Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    {/* Section Number */}
+                    <span
+                      className="px-2 py-0.5 rounded-md text-xs font-mono font-bold tracking-tight shrink-0"
+                      style={{
+                        backgroundColor: theme.primaryLight,
+                        color: theme.primary
+                      }}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
 
-                return (
-                  <article
-                    key={note.id}
-                    className={`transition-all ${
-                      note.highlighted ? 'p-5 rounded-2xl bg-[#FFFBFB] ring-1' : ''
-                    }`}
-                    style={{
-                      borderColor: note.highlighted ? theme.primaryBorder : undefined,
-                      boxShadow: note.highlighted ? `0 0 0 1px ${theme.primary}` : undefined
-                    }}
-                  >
-                    {/* Section Header Row */}
-                    <div className="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        {/* Section Number */}
-                        <span
-                          className="px-2 py-0.5 rounded-md text-xs font-mono font-bold tracking-tight"
-                          style={{
-                            backgroundColor: theme.primaryLight,
-                            color: theme.primary
-                          }}
-                        >
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
+                    {/* Category Badge */}
+                    <span
+                      className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${getCategoryBadgeClass(
+                        note.category
+                      )}`}
+                    >
+                      {note.category}
+                    </span>
+                  </div>
 
-                        {/* Category Badge */}
-                        <span
-                          className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${getCategoryBadgeClass(
-                            note.category
-                          )}`}
-                        >
-                          {note.category}
-                        </span>
-                      </div>
+                  {/* Quiet Action Icons */}
+                  <div className="flex items-center gap-1 text-slate-400">
+                    {/* Highlight */}
+                    <button
+                      onClick={() => handleToggleHighlight(note.id)}
+                      title={note.highlighted ? 'Remove highlight' : 'Highlight section'}
+                      className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                        note.highlighted
+                          ? 'shadow-2xs font-semibold'
+                          : 'border-transparent hover:bg-slate-100/60 hover:text-slate-700'
+                      }`}
+                      style={{
+                        backgroundColor: note.highlighted ? theme.highlightBg : undefined,
+                        color: note.highlighted ? theme.highlightText : undefined,
+                        borderColor: note.highlighted ? theme.highlightBorder : 'transparent'
+                      }}
+                    >
+                      <Highlighter className="w-3.5 h-3.5" />
+                    </button>
 
-                      {/* Quiet Action Icons */}
-                      <div className="flex items-center gap-1 text-slate-400">
-                        {/* Highlight */}
-                        <button
-                          onClick={() => handleToggleHighlight(note.id)}
-                          title={note.highlighted ? 'Remove highlight' : 'Highlight section'}
-                          className="p-1 rounded-md hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
-                          style={{
-                            color: note.highlighted ? theme.primary : undefined
-                          }}
-                        >
-                          <Highlighter className="w-3.5 h-3.5" />
-                        </button>
+                    {/* Read Aloud */}
+                    <button
+                      onClick={() => handleSpeakNote(note)}
+                      title={speakingNoteId === note.id ? 'Stop reading' : 'Read aloud'}
+                      className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                        speakingNoteId === note.id
+                          ? 'bg-teal-50 text-teal-600 animate-pulse'
+                          : 'hover:bg-slate-50 hover:text-teal-600'
+                      }`}
+                    >
+                      {speakingNoteId === note.id ? (
+                        <VolumeX className="w-3.5 h-3.5" />
+                      ) : (
+                        <Volume2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
 
-                        {/* Read Aloud */}
-                        <button
-                          onClick={() => handleSpeakNote(note)}
-                          title={speakingNoteId === note.id ? 'Stop reading' : 'Read aloud'}
-                          className={`p-1 rounded-md transition-colors cursor-pointer ${
-                            speakingNoteId === note.id
-                              ? 'bg-teal-50 text-teal-600 animate-pulse'
-                              : 'hover:bg-slate-50 hover:text-teal-600'
-                          }`}
-                        >
-                          {speakingNoteId === note.id ? (
-                            <VolumeX className="w-3.5 h-3.5" />
-                          ) : (
-                            <Volume2 className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                    {/* Copy */}
+                    <button
+                      onClick={() => handleCopyNote(note)}
+                      title="Copy text"
+                      className="p-1.5 rounded-md hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
+                    >
+                      {copiedNoteId === note.id ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
 
-                        {/* Copy */}
-                        <button
-                          onClick={() => handleCopyNote(note)}
-                          title="Copy text"
-                          className="p-1 rounded-md hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
-                        >
-                          {copiedNoteId === note.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                    {/* Edit */}
+                    <button
+                      onClick={() => openEditModal(note)}
+                      title="Edit note"
+                      className="p-1.5 rounded-md hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
 
-                        {/* Edit */}
-                        <button
-                          onClick={() => openEditModal(note)}
-                          title="Edit note"
-                          className="p-1 rounded-md hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          onClick={() => handleDeleteNote(note.id)}
-                          title="Delete note"
-                          className="p-1 rounded-md hover:bg-slate-50 hover:text-rose-500 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Section Title */}
-                    <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 mb-3 leading-snug">
-                      {note.title}
-                    </h2>
-
-                    {/* Section Text Content */}
-                    <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line font-normal space-y-2">
-                      {note.content}
-                    </div>
-
-                    {/* Embedded Picture from the Source */}
-                    {pictureComponent && (
-                      <div className="my-4">
-                        {pictureComponent}
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {note.tags.length > 0 && (
-                      <div className="mt-4 pt-2.5 flex flex-wrap items-center gap-1.5">
-                        {note.tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[10px] text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Subtle divider between linear sections */}
-                    {index < filteredNotes.length - 1 && (
-                      <div className="border-b border-[#F0E6E4] mt-10 pt-2" />
-                    )}
-                  </article>
-                );
-              })}
-
-              {/* End of Notes & Clean Navigation to Questions */}
-              <div className="pt-8 border-t border-[#F0E6E4] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>You've reviewed all notes in this section.</span>
+                    {/* Delete */}
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      title="Delete note"
+                      className="p-1.5 rounded-md hover:bg-slate-50 hover:text-rose-500 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => onNavigateToTab('quiz')}
-                  className="text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-95"
-                  style={{ backgroundColor: theme.primary }}
-                >
-                  <span>Continue to Questions ({currentReviewer.questions.length})</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        /* Flashcards Mode */
-        <div className="max-w-xl mx-auto py-6 space-y-6">
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>
-              Card {activeFlashcardIndex + 1} of {currentReviewer.notes.length}
-            </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: theme.primaryLight, color: theme.primary }}>
-              Click to flip
-            </span>
-          </div>
+                {/* Section Title without hashtags */}
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 mb-4 leading-snug">
+                  {note.title.replace(/#{1,6}\s*/g, '').replace(/#/g, '')}
+                </h2>
 
-          {currentReviewer.notes[activeFlashcardIndex] && (
-            <div
-              onClick={() => setIsFlipped(!isFlipped)}
-              className="min-h-[300px] bg-white rounded-3xl p-8 border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm flex flex-col justify-between text-center select-none"
-            >
-              <div className="flex justify-between items-center text-xs">
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getCategoryBadgeClass(
-                    currentReviewer.notes[activeFlashcardIndex].category
-                  )}`}
-                >
-                  {currentReviewer.notes[activeFlashcardIndex].category}
-                </span>
-                <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <RotateCw className="w-3 h-3" />
-                  Flip
-                </span>
-              </div>
+                {/* Clean Formatted Note Content with Highlights */}
+                <div className="py-1">
+                  <FormattedNoteContent content={note.content} />
+                </div>
 
-              <div className="my-auto py-6">
-                {!isFlipped ? (
-                  <div>
-                    <h3 className="font-serif text-2xl font-bold text-slate-900">
-                      {currentReviewer.notes[activeFlashcardIndex].title}
-                    </h3>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line text-left">
-                      {currentReviewer.notes[activeFlashcardIndex].content}
-                    </p>
+                {/* Embedded Picture from the Source */}
+                {pictureComponent && (
+                  <div className="my-6">
+                    {pictureComponent}
                   </div>
                 )}
-              </div>
 
-              <div className="text-[11px] text-slate-400">
-                {isFlipped ? 'Click to show title' : 'Click to reveal explanation'}
-              </div>
+                {/* Subtle divider between linear sections with generous spacing */}
+                {index < filteredNotes.length - 1 && (
+                  <div className="border-b border-[#F0E6E4] mt-10 sm:mt-14 pt-2" />
+                )}
+              </article>
+            );
+          })}
+
+          {/* End of Notes */}
+          <div className="pt-6 sm:pt-8 border-t border-[#F0E6E4] flex items-center justify-center">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600/80 shrink-0" />
+              <span>Complete lecture notes reading</span>
             </div>
-          )}
-
-          <div className="flex justify-between items-center gap-4">
-            <button
-              onClick={() => {
-                setIsFlipped(false);
-                setActiveFlashcardIndex(prev => Math.max(0, prev - 1));
-              }}
-              disabled={activeFlashcardIndex === 0}
-              className="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 disabled:opacity-40 transition-colors cursor-pointer"
-            >
-              Previous Card
-            </button>
-            <button
-              onClick={() => {
-                setIsFlipped(false);
-                setActiveFlashcardIndex(prev =>
-                  Math.min(currentReviewer.notes.length - 1, prev + 1)
-                );
-              }}
-              disabled={activeFlashcardIndex === currentReviewer.notes.length - 1}
-              className="flex-1 py-2.5 rounded-xl text-white text-xs font-semibold shadow-xs disabled:opacity-40 transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primary }}
-            >
-              Next Card
-            </button>
           </div>
         </div>
       )}
 
-      {/* Add / Edit Note Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+      {/* Edit Note Modal */}
+      {editingNote && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-serif text-lg font-bold text-slate-900">
-                {editingNote ? 'Edit Study Note' : 'Add New Note'}
+                Edit Note Section
               </h3>
               <button
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => setEditingNote(null)}
                 className="text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveNoteForm} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
               <div>
                 <label className="block font-medium text-slate-700 mb-1">Title</label>
                 <input
                   type="text"
                   required
-                  value={noteFormTitle}
-                  onChange={(e) => setNoteFormTitle(e.target.value)}
-                  placeholder="e.g. Standard Precautions..."
+                  value={editFormTitle}
+                  onChange={(e) => setEditFormTitle(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-slate-400"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-medium text-slate-700 mb-1">Category</label>
-                  <select
-                    value={noteFormCategory}
-                    onChange={(e) => setNoteFormCategory(e.target.value as NoteItem['category'])}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none"
-                  >
-                    <option value="Concept">Concept</option>
-                    <option value="Definition">Definition</option>
-                    <option value="Formula">Formula</option>
-                    <option value="Key Takeaway">Key Takeaway</option>
-                    <option value="Summary">Summary</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-medium text-slate-700 mb-1">Importance</label>
-                  <select
-                    value={noteFormImportance}
-                    onChange={(e) => setNoteFormImportance(e.target.value as NoteItem['importance'])}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none"
-                  >
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">Category</label>
+                <select
+                  value={editFormCategory}
+                  onChange={(e) => setEditFormCategory(e.target.value as NoteItem['category'])}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none"
+                >
+                  <option value="Concept">Concept</option>
+                  <option value="Definition">Definition</option>
+                  <option value="Formula">Formula</option>
+                  <option value="Key Takeaway">Key Takeaway</option>
+                  <option value="Summary">Summary</option>
+                </select>
               </div>
 
               <div>
                 <label className="block font-medium text-slate-700 mb-1">Content</label>
                 <textarea
-                  rows={4}
+                  rows={5}
                   required
-                  value={noteFormContent}
-                  onChange={(e) => setNoteFormContent(e.target.value)}
-                  placeholder="Write note content..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 outline-none focus:border-slate-400 resize-none"
+                  value={editFormContent}
+                  onChange={(e) => setEditFormContent(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 outline-none focus:border-slate-400 resize-none leading-relaxed"
                 />
               </div>
 
@@ -712,8 +585,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 <label className="block font-medium text-slate-700 mb-1">Tags (comma separated)</label>
                 <input
                   type="text"
-                  value={noteFormTags}
-                  onChange={(e) => setNoteFormTags(e.target.value)}
+                  value={editFormTags}
+                  onChange={(e) => setEditFormTags(e.target.value)}
                   placeholder="Safety, OSHA, PPE"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none"
                 />
@@ -722,7 +595,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => setEditingNote(null)}
                   className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium cursor-pointer"
                 >
                   Cancel
@@ -732,7 +605,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   className="px-4 py-2 rounded-xl text-white font-semibold shadow-xs cursor-pointer"
                   style={{ backgroundColor: theme.primary }}
                 >
-                  {editingNote ? 'Save Changes' : 'Add Note'}
+                  Save Changes
                 </button>
               </div>
             </form>

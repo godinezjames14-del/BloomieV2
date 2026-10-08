@@ -306,62 +306,14 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom Footer: Active Reviewer Reading Progress & Accuracy */}
-      <div className="p-4 border-t border-[#EAE2E0] bg-[#FCF8F7] space-y-3">
+      {/* Bottom Footer with Theme Picker */}
+      <div className="p-4 border-t border-[#EAE2E0] bg-[#FCF8F7] flex justify-between items-center">
         {activeReviewer && (
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="font-bold text-[#334155] truncate">
-                {activeReviewer.name}
-              </span>
-              <span className="text-[10px] text-[#64748B] font-mono">
-                {activeReviewer.notes.length} notes • {activeReviewer.questions.length} Qs
-              </span>
-            </div>
-
-            {/* Reading Scroll Progress */}
-            <div>
-              <div className="flex justify-between items-center text-[10px] mb-1 text-[#64748B]">
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3 h-3" />
-                  <span>Read</span>
-                </span>
-                <span className="font-bold" style={{ color: theme.primary }}>
-                  {activeReviewer.notesScrollProgress || 0}%
-                </span>
-              </div>
-              <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.max(activeReviewer.notesScrollProgress ? 5 : 0, activeReviewer.notesScrollProgress || 0)}%`,
-                    backgroundColor: theme.primary
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Quiz Accuracy Score */}
-            <div className="pt-1 flex justify-between items-center text-[10px]">
-              <span className="text-[#64748B] flex items-center gap-1">
-                <Award className="w-3 h-3" />
-                <span>Accuracy</span>
-              </span>
-              {activeReviewer.quizAccuracy?.completed ? (
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                  {activeReviewer.quizAccuracy.scorePercent}%
-                </span>
-              ) : (
-                <span className="text-[#94A3B8]">Pending</span>
-              )}
-            </div>
-          </div>
+          <span className="text-[11px] font-semibold text-[#334155] truncate max-w-[170px]">
+            {activeReviewer.name}
+          </span>
         )}
-
-        {/* Theme Picker in Footer */}
-        <div className="pt-2 border-t border-[#F1E9E7] flex justify-end items-center">
-          <ThemePicker />
-        </div>
+        <ThemePicker />
       </div>
     </aside>
   );

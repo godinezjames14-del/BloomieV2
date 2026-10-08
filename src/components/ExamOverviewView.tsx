@@ -122,34 +122,19 @@ export const ExamOverviewView: React.FC<ExamOverviewViewProps> = ({
                           </span>
                         )}
                       </div>
-
-                      <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                        <span>{reviewer.notes.length} notes</span>
-                        <span>·</span>
-                        <span>{reviewer.questions.length} questions</span>
-                        {scroll > 0 && (
-                          <>
-                            <span>·</span>
-                            <span>{scroll}% read</span>
-                          </>
-                        )}
-                      </div>
                     </div>
 
-                    {/* Direct Launch Buttons */}
-                    <div className="pt-2 border-t border-slate-100 flex gap-2">
+                    {/* Direct Launch Button */}
+                    <div className="pt-2 border-t border-slate-100 flex">
                       <button
-                        onClick={() => onSelectReviewerAndTab(subject.id, reviewer.id, 'notes')}
-                        className="flex-1 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold transition-colors text-center text-slate-700 cursor-pointer"
-                      >
-                        Notes
-                      </button>
-                      <button
-                        onClick={() => onSelectReviewerAndTab(subject.id, reviewer.id, 'quiz')}
-                        className="flex-1 py-2 rounded-xl text-white text-xs font-semibold transition-colors text-center shadow-xs cursor-pointer"
+                        onClick={() => {
+                          const tab = reviewer.notes.length > 0 ? 'notes' : 'quiz';
+                          onSelectReviewerAndTab(subject.id, reviewer.id, tab);
+                        }}
+                        className="w-full py-2 rounded-xl text-white text-xs font-semibold transition-colors text-center shadow-xs cursor-pointer hover:opacity-95"
                         style={{ backgroundColor: theme.primary }}
                       >
-                        Questions
+                        Open
                       </button>
                     </div>
                   </div>

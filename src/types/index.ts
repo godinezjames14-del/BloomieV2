@@ -69,17 +69,32 @@ export type PageView = 'home' | 'exam_workspace';
 export type WorkspaceTab = 'overview' | 'notes' | 'quiz';
 export type ActiveTab = 'dashboard' | 'overview' | 'notes' | 'quiz';
 
-export type FlowerThemeId = 'pink' | 'purple' | 'blue' | 'yellow' | 'green';
+export type BaseFlowerColor = 'pink' | 'purple' | 'blue' | 'yellow' | 'green';
+
+export type FlowerThemeId = 
+  | 'pink' | 'pink_dark'
+  | 'purple' | 'purple_dark'
+  | 'blue' | 'blue_dark'
+  | 'yellow' | 'yellow_dark'
+  | 'green' | 'green_dark'
+  | 'inverted';
 
 export interface FlowerTheme {
   id: FlowerThemeId;
+  baseColor: BaseFlowerColor;
   name: string;
+  modeName: string; // e.g. "Light" or "Dark Inverted"
   flower: string; // emoji/flower name
   primary: string; // main button/accent hex
   primaryHover: string;
   primaryLight: string; // soft pill background
   primaryBorder: string;
-  bgPage: string; // warm background
-  bgCard: string;
+  bgPage: string; // page background
+  bgCard: string; // card / surface background
   textPrimary: string;
+  isInverted: boolean;
+  highlightBg: string; // Background for highlighted text / marks
+  highlightText: string; // Text color for highlighted text / marks
+  highlightBorder: string; // Border color for highlighted text / marks
+  highlightCardBg: string; // Background tint for highlighted note sections
 }

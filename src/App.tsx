@@ -17,7 +17,6 @@ import { ExamSidebar } from './components/ExamSidebar';
 import { ExamOverviewView } from './components/ExamOverviewView';
 import { NotesView } from './components/NotesView';
 import { QuizView } from './components/QuizView';
-import { UploadModal } from './components/UploadModal';
 import { 
   Menu,
   PanelLeft,
@@ -31,7 +30,7 @@ function AppContent() {
   // Load exams from localStorage or fallback to defaults
   const [exams, setExams] = useState<Exam[]>(() => {
     try {
-      const saved = localStorage.getItem('bloomie_microbio_v2');
+      const saved = localStorage.getItem('bloomie_microbio_v5');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -50,18 +49,42 @@ function AppContent() {
   const [selectedReviewerId, setSelectedReviewerId] = useState<string>('');
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('notes');
 
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSidebarRetracted, setIsSidebarRetracted] = useState(false);
+  const [scrollPercent, setScrollPercent] = useState(0);
 
   // Sync exams to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('bloomie_microbio_v2', JSON.stringify(exams));
+      localStorage.setItem('bloomie_microbio_v5', JSON.stringify(exams));
     } catch (e) {
       console.warn('Failed to save exams', e);
     }
   }, [exams]);
+
+  // Window scroll tracker for minimalistic progress bar in sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 10) {
+        const pct = Math.min(100, Math.max(0, Math.round((scrollTop / scrollHeight) * 100)));
+        setScrollPercent(pct);
+      } else {
+        setScrollPercent(0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    // Reset or recalculate upon tab/view switch
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [pageView, workspaceTab, selectedReviewerId]);
 
   // Current Exam
   const currentExam = exams.find(e => e.id === selectedExamId) || exams[0];
@@ -100,6 +123,7 @@ function AppContent() {
     }
     setWorkspaceTab('notes');
     setPageView('exam_workspace');
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   // Select a Reviewer inside Exam Sidebar or Cross-Subject Navigator
@@ -112,7 +136,7 @@ function AppContent() {
     setSelectedReviewerId(reviewerId);
     if (preferredTab) {
       setWorkspaceTab(preferredTab);
-    } else if (workspaceTab === 'overview') {
+    } else {
       const subj = currentExam?.subjects.find(s => s.id === subjectId);
       const rev = subj?.reviewers.find(r => r.id === reviewerId);
       if (rev && rev.notes.length === 0 && rev.questions.length > 0) {
@@ -121,6 +145,7 @@ function AppContent() {
         setWorkspaceTab('notes');
       }
     }
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   // Direct Shortcut from Overview
@@ -132,6 +157,7 @@ function AppContent() {
     setSelectedSubjectId(subjectId);
     setSelectedReviewerId(reviewerId);
     setWorkspaceTab(tab);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   // Authentic Reading Scroll Progress Tracker
@@ -227,27 +253,6 @@ function AppContent() {
     );
   };
 
-  // Add New Reviewer to Active Subject
-  const handleAddReviewer = (newReviewer: Reviewer) => {
-    setExams(prevExams =>
-      prevExams.map(ex => {
-        if (ex.id !== currentExam.id) return ex;
-        return {
-          ...ex,
-          subjects: ex.subjects.map(sb => {
-            if (sb.id !== currentSubject.id) return sb;
-            return {
-              ...sb,
-              reviewers: [newReviewer, ...sb.reviewers]
-            };
-          })
-        };
-      })
-    );
-    setSelectedReviewerId(newReviewer.id);
-    setWorkspaceTab('notes');
-  };
-
   return (
     <div 
       className="min-h-screen text-[#2D2A2E] antialiased" 
@@ -279,7 +284,10 @@ function AppContent() {
               activeTab={workspaceTab}
               onSelectReviewer={handleSelectReviewer}
               onSelectTab={setWorkspaceTab}
-              onBackToHome={() => setPageView('home')}
+              onBackToHome={() => {
+                setPageView('home');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
               onToggleRetract={() => setIsSidebarRetracted(true)}
             />
           </div>
@@ -304,6 +312,7 @@ function AppContent() {
                   onBackToHome={() => {
                     setIsMobileDrawerOpen(false);
                     setPageView('home');
+                    window.scrollTo({ top: 0, behavior: 'instant' });
                   }}
                   onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
                 />
@@ -314,15 +323,16 @@ function AppContent() {
 
           {/* Main Workspace Area */}
           <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-            {/* Top Workspace Header Bar (Ultra Minimal: Sidebar Button + Mini Home Button + Theme Button) */}
-            <header className="h-14 px-4 sm:px-6 flex items-center justify-between border-b border-[#F0E6E4] bg-white/90 backdrop-blur-sm sticky top-0 z-20">
+            {/* Top Workspace Header Bar (Sidebar Button + Mini Home Button + Theme Button + Minimalist Scroll Progress) */}
+            <header className="h-14 px-3 sm:px-6 flex items-center justify-between border-b border-[#F0E6E4] bg-white/95 backdrop-blur-md sticky top-0 z-30">
               {/* Left Controls: Sidebar Toggle + Mini Home Button */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {/* Mobile Hamburger to open Subjects Sidebar Drawer */}
                 <button
                   onClick={() => setIsMobileDrawerOpen(true)}
-                  className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 active:scale-95"
                   title="Open sidebar"
+                  aria-label="Open sidebar"
                 >
                   <Menu className="w-4 h-4" />
                 </button>
@@ -342,9 +352,13 @@ function AppContent() {
 
                 {/* Mini Home Button */}
                 <button
-                  onClick={() => setPageView('home')}
-                  className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
-                  title="Home"
+                  onClick={() => {
+                    setPageView('home');
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                  }}
+                  className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 active:scale-95"
+                  title="Return to home"
+                  aria-label="Return to home"
                 >
                   <Home className="w-4 h-4" />
                 </button>
@@ -353,6 +367,17 @@ function AppContent() {
               {/* Right Controls: Theme Selector */}
               <div className="flex items-center">
                 <ThemePicker />
+              </div>
+
+              {/* Minimalistic Scroll Progress Bar (visible when you scroll) */}
+              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-black/5 overflow-hidden pointer-events-none">
+                <div 
+                  className="h-full transition-all duration-150 ease-out"
+                  style={{
+                    width: `${scrollPercent}%`,
+                    backgroundColor: theme.primary
+                  }}
+                />
               </div>
             </header>
 
@@ -371,7 +396,6 @@ function AppContent() {
                   currentSubject={currentSubject}
                   allSubjects={currentExam.subjects}
                   examTitle={currentExam.title}
-                  onSelectReviewerAndTab={handleSelectReviewerAndTab}
                   onUpdateNotes={handleUpdateNotes}
                   onNavigateToTab={(tab) =>
                     setWorkspaceTab(tab === 'dashboard' ? 'overview' : (tab as WorkspaceTab))
@@ -398,15 +422,6 @@ function AppContent() {
             </main>
           </div>
         </div>
-      )}
-
-      {/* Upload / Add Reviewer Modal */}
-      {isUploadModalOpen && (
-        <UploadModal
-          isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
-          onAddReviewer={handleAddReviewer}
-        />
       )}
     </div>
   );

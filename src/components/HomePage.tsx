@@ -59,7 +59,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   return (
     <div className="min-h-screen text-slate-800" style={{ backgroundColor: theme.bgPage }}>
       {/* Clean Top Navigation Bar */}
-      <header className="h-16 px-6 sm:px-10 flex items-center justify-between border-b border-[#F0E6E4] bg-white/80 backdrop-blur-sm sticky top-0 z-30">
+      <header className="h-16 px-4 sm:px-10 flex items-center justify-between border-b border-[#F0E6E4] bg-white/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
           <div 
             className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-xs"
@@ -78,7 +78,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-in fade-in duration-200">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-8 space-y-6 animate-in fade-in duration-200">
         {/* Minimal Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -89,10 +89,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           {/* Filter & Search Bar */}
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center bg-[#FAF7F6] p-1 rounded-xl border border-slate-200 text-xs">
+            <div className="flex items-center bg-[#FAF7F6] p-1 rounded-xl border border-slate-200 text-xs overflow-x-auto max-w-full">
               <button
                 onClick={() => setFilterTab('all')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
                   filterTab === 'all'
                     ? 'bg-white shadow-2xs font-bold text-slate-900'
                     : 'text-slate-500 hover:text-slate-900'
@@ -102,7 +102,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
               <button
                 onClick={() => setFilterTab('upcoming')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
                   filterTab === 'upcoming'
                     ? 'bg-white shadow-2xs font-bold text-slate-900'
                     : 'text-slate-500 hover:text-slate-900'
@@ -112,7 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
               <button
                 onClick={() => setFilterTab('past')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
                   filterTab === 'past'
                     ? 'bg-white shadow-2xs font-bold text-slate-900'
                     : 'text-slate-500 hover:text-slate-900'
@@ -122,14 +122,14 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
             </div>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none w-40 sm:w-48 focus:border-slate-400"
+                className="bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none w-full sm:w-48 focus:border-slate-400"
               />
             </div>
           </div>
@@ -139,24 +139,13 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="space-y-4">
           {filteredExams.map((exam) => {
             const daysLeft = calculateDaysLeft(exam.date);
-            const allReviewers = exam.subjects.flatMap(s => s.reviewers);
-            const totalReviewers = allReviewers.length;
-
-            const totalScroll = allReviewers.reduce((sum, r) => sum + (r.notesScrollProgress || 0), 0);
-            const avgScrollProgress = totalReviewers > 0 ? Math.round(totalScroll / totalReviewers) : 0;
-
-            const completedQuizzes = allReviewers.filter(r => r.quizAccuracy?.completed);
-            const totalCorrect = completedQuizzes.reduce((sum, r) => sum + (r.quizAccuracy?.correctCount || 0), 0);
-            const totalQuestionsAnswered = completedQuizzes.reduce((sum, r) => sum + (r.quizAccuracy?.totalCount || 0), 0);
-            const avgAccuracy = totalQuestionsAnswered > 0 ? Math.round((totalCorrect / totalQuestionsAnswered) * 100) : null;
-
             const isUpcoming = exam.status === 'upcoming';
 
             return (
               <div
                 key={exam.id}
                 onClick={() => onSelectExam(exam.id)}
-                className="bg-white rounded-2xl p-5 sm:p-6 border border-[#EFE5E3] hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer space-y-3.5 group"
+                className="bg-white rounded-2xl p-4 sm:p-6 border border-[#EFE5E3] hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer space-y-3.5 group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 flex-wrap">
@@ -189,26 +178,11 @@ export const HomePage: React.FC<HomePageProps> = ({
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 pt-1 border-t border-slate-100">
                   <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Read:</span>
-                      <span className="font-bold text-slate-800">{avgScrollProgress}%</span>
-                    </span>
-
-                    <span className="flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Accuracy:</span>
-                      <span className="font-bold text-slate-800">
-                        {avgAccuracy !== null ? `${avgAccuracy}%` : '—'}
-                      </span>
-                    </span>
-
-                    <span>·</span>
                     <span>{exam.subjects.length} subjects</span>
                   </div>
 
                   <span className="font-semibold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform" style={{ color: theme.primary }}>
-                    <span>Open Reviewer</span>
+                    <span>Open</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>

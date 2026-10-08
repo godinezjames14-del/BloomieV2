@@ -5,7 +5,7 @@ export const initialReviewers: Reviewer[] = [
     id: 'reviewer-microbio-safety',
     name: 'Safety in the Microbiology Laboratory',
     fileName: 'Safety_in_the_Microbiology_Laboratory.pdf',
-    fileSnippet: 'Comprehensive lecture reviewer prepared by Michelle Gie Cabarde-Obial, RMT, DTA, MSMT covering all 24 slides on OSHA standards, standard precautions, lab hazards, BSC classes, BSL levels, and control hierarchies.',
+    fileSnippet: 'Comprehensive lecture reviewer covering all 24 slides on OSHA standards, standard precautions, lab hazards, BSC classes, BSL levels, and control hierarchies.',
     testDate: '2026-10-15',
     questionTypes: ['multiple_choice', 'identification', 'enumeration', 'essay'],
     questionCount: 15,

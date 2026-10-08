@@ -280,16 +280,6 @@ export const QuizView: React.FC<QuizViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Quick Study Notes Switcher */}
-          <button
-            onClick={() => onNavigateToTab('notes')}
-            className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-            title="Read study notes"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-slate-500" />
-            <span>Notes</span>
-          </button>
-
           {/* Prominent Restart Quiz Button */}
           <button
             onClick={handleRestartQuiz}
@@ -340,7 +330,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
         </div>
 
         {/* The Visual Grid of Boxes */}
-        <div className="flex flex-wrap gap-2 pt-1">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
           {questions.map((q, idx) => {
             const isCurrent = idx === currentIndex;
             const state = answers[idx];
@@ -362,7 +352,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 key={q.id}
                 onClick={() => handleJumpToQuestion(idx)}
                 title={`Question ${idx + 1}${isSubmitted ? (isCorrect ? ' · Correct' : ' · Needs Review') : ' · Click to jump'}`}
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center transition-all cursor-pointer ${boxStyle}`}
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center transition-all cursor-pointer ${boxStyle}`}
                 style={{
                   borderColor: isCurrent ? theme.primary : undefined,
                   boxShadow: isCurrent ? `0 0 0 2px ${theme.primary}` : undefined
@@ -483,20 +473,10 @@ export const QuizView: React.FC<QuizViewProps> = ({
               {/* Enumeration */}
               {currentQ.type === 'enumeration' && (
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-xs text-slate-600">
+                  <div className="text-xs text-slate-600">
                     <label className="block font-medium">
                       List {Array.isArray(currentQ.correctAnswer) ? currentQ.correctAnswer.length : ''} items:
                     </label>
-                    {!isCurrentSubmitted && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveEnumInputs(prev => [...prev, ''])}
-                        className="text-[11px] font-semibold hover:underline cursor-pointer"
-                        style={{ color: theme.primary }}
-                      >
-                        + Add item line
-                      </button>
-                    )}
                   </div>
                   {(isCurrentSubmitted ? (answers[currentIndex]?.enumerationInputs || []) : activeEnumInputs).map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2">
