@@ -93,7 +93,14 @@ const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
           const title = trimmed.replace(/^[•—]\s*/, '').replace(/:$/, '');
           return (
             <div key={idx} className="pt-3.5 pb-1">
-              <span className="inline-block text-xs font-bold tracking-wide text-slate-800 uppercase bg-slate-100 border border-slate-200/80 px-3 py-1 rounded-lg">
+              <span 
+                className="inline-block text-xs font-bold tracking-wide uppercase px-3 py-1 rounded-lg border transition-colors"
+                style={{
+                  backgroundColor: theme.isInverted ? theme.bgCard : '#F1F5F9',
+                  borderColor: theme.borderSubtle,
+                  color: theme.fontPrimary
+                }}
+              >
                 {title}
               </span>
             </div>
@@ -107,10 +114,17 @@ const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
           const text = numberedMatch[2];
           return (
             <div key={idx} className="flex items-start gap-3 pl-1 sm:pl-2 py-0.5">
-              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5 border border-slate-200 shadow-2xs">
+              <span 
+                className="w-5 h-5 rounded-full font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5 border shadow-2xs transition-colors"
+                style={{
+                  backgroundColor: theme.isInverted ? theme.bgCard : '#F1F5F9',
+                  color: theme.fontPrimary,
+                  borderColor: theme.borderSubtle
+                }}
+              >
                 {num}
               </span>
-              <div className="flex-1 leading-relaxed">
+              <div className="flex-1 leading-relaxed" style={{ color: theme.fontBody }}>
                 {renderInlineFormatted(text)}
               </div>
             </div>
@@ -121,8 +135,11 @@ const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
         if (line.match(/^\s*[-]\s+(.*)$/)) {
           const text = line.replace(/^\s*[-]\s+/, '');
           return (
-            <div key={idx} className="flex items-start gap-2.5 pl-5 sm:pl-7 text-slate-600 py-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0 mt-2" />
+            <div key={idx} className="flex items-start gap-2.5 pl-5 sm:pl-7 py-0.5" style={{ color: theme.fontBody }}>
+              <span 
+                className="w-1.5 h-1.5 rounded-full shrink-0 mt-2" 
+                style={{ backgroundColor: theme.fontMuted }}
+              />
               <div className="flex-1 leading-relaxed">
                 {renderInlineFormatted(text)}
               </div>
@@ -134,8 +151,11 @@ const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
         if (trimmed.startsWith('• ')) {
           const text = trimmed.replace(/^•\s*/, '');
           return (
-            <div key={idx} className="flex items-start gap-3 pl-1 py-0.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600/80 shrink-0 mt-1.5" />
+            <div key={idx} className="flex items-start gap-3 pl-1 py-0.5" style={{ color: theme.fontBody }}>
+              <span 
+                className="w-2 h-2 rounded-full shrink-0 mt-1.5" 
+                style={{ backgroundColor: theme.primary }}
+              />
               <div className="flex-1 leading-relaxed">
                 {renderInlineFormatted(text)}
               </div>
@@ -145,7 +165,7 @@ const FormattedNoteContent: React.FC<{ content: string }> = ({ content }) => {
 
         // Regular line / paragraph
         return (
-          <p key={idx} className="leading-relaxed py-0.5">
+          <p key={idx} className="leading-relaxed py-0.5" style={{ color: theme.fontBody }}>
             {renderInlineFormatted(line)}
           </p>
         );
@@ -446,11 +466,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     <button
                       onClick={() => handleSpeakNote(note)}
                       title={speakingNoteId === note.id ? 'Stop reading' : 'Read aloud'}
-                      className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                        speakingNoteId === note.id
-                          ? 'bg-teal-50 text-teal-600 animate-pulse'
-                          : 'hover:bg-slate-50 hover:text-teal-600'
-                      }`}
+                      className="p-1.5 rounded-md transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: speakingNoteId === note.id ? theme.highlightBg : undefined,
+                        color: speakingNoteId === note.id ? theme.primary : undefined
+                      }}
                     >
                       {speakingNoteId === note.id ? (
                         <VolumeX className="w-3.5 h-3.5" />
