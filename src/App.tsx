@@ -30,10 +30,10 @@ function AppContent() {
   // Load exams from localStorage or fallback to defaults
   const [exams, setExams] = useState<Exam[]>(() => {
     try {
-      const saved = localStorage.getItem('bloomie_microbio_v5');
+      const saved = localStorage.getItem('bloomie_microbio_v9');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length >= 5) {
           return parsed;
         }
       }
@@ -56,7 +56,7 @@ function AppContent() {
   // Sync exams to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('bloomie_microbio_v5', JSON.stringify(exams));
+      localStorage.setItem('bloomie_microbio_v9', JSON.stringify(exams));
     } catch (e) {
       console.warn('Failed to save exams', e);
     }
@@ -122,6 +122,32 @@ function AppContent() {
       }
     }
     setWorkspaceTab('notes');
+    setPageView('exam_workspace');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  // Direct Navigation to specific exam, subject, reviewer, and tab
+  const handleSelectExamAndReviewer = (
+    examId: string, 
+    subjectId?: string, 
+    reviewerId?: string, 
+    preferredTab: WorkspaceTab = 'notes'
+  ) => {
+    setSelectedExamId(examId);
+    const targetExam = exams.find(e => e.id === examId) || exams[0];
+    const targetSubject = subjectId 
+      ? targetExam?.subjects.find(s => s.id === subjectId) 
+      : targetExam?.subjects[0];
+
+    if (targetSubject) {
+      setSelectedSubjectId(targetSubject.id);
+      if (reviewerId) {
+        setSelectedReviewerId(reviewerId);
+      } else if (targetSubject.reviewers.length > 0) {
+        setSelectedReviewerId(targetSubject.reviewers[0].id);
+      }
+    }
+    setWorkspaceTab(preferredTab);
     setPageView('exam_workspace');
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -255,8 +281,8 @@ function AppContent() {
 
   return (
     <div 
-      className="min-h-screen text-[#2D2A2E] antialiased" 
-      style={{ backgroundColor: theme.bgPage }}
+      className="min-h-screen antialiased transition-colors" 
+      style={{ backgroundColor: theme.bgPage, color: theme.fontPrimary }}
     >
       {/* PAGE 1: HOME PAGE (CLEAN, NO SIDEBAR) */}
       {pageView === 'home' && (
@@ -279,10 +305,14 @@ function AppContent() {
           >
             <ExamSidebar
               exam={currentExam}
+              allExams={exams}
               activeSubjectId={currentSubject?.id || ''}
               activeReviewerId={currentReviewer?.id || ''}
               activeTab={workspaceTab}
               onSelectReviewer={handleSelectReviewer}
+              onSelectExam={(examId, subjId, revId, prefTab) => {
+                handleSelectExamAndReviewer(examId, subjId, revId, prefTab);
+              }}
               onSelectTab={setWorkspaceTab}
               onBackToHome={() => {
                 setPageView('home');
@@ -295,14 +325,22 @@ function AppContent() {
           {/* Mobile Overlay Drawer */}
           {isMobileDrawerOpen && (
             <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex md:hidden animate-in fade-in duration-150">
-              <div className="w-80 max-w-[85vw] bg-white h-full shadow-2xl animate-in slide-in-from-left duration-200">
+              <div 
+                className="w-80 max-w-[85vw] h-full shadow-2xl animate-in slide-in-from-left duration-200 border-r"
+                style={{ backgroundColor: theme.bgCard, borderColor: theme.borderSubtle }}
+              >
                 <ExamSidebar
                   exam={currentExam}
+                  allExams={exams}
                   activeSubjectId={currentSubject?.id || ''}
                   activeReviewerId={currentReviewer?.id || ''}
                   activeTab={workspaceTab}
                   onSelectReviewer={(subjId, revId, prefTab) => {
                     handleSelectReviewer(subjId, revId, prefTab);
+                    setIsMobileDrawerOpen(false);
+                  }}
+                  onSelectExam={(examId, subjId, revId, prefTab) => {
+                    handleSelectExamAndReviewer(examId, subjId, revId, prefTab);
                     setIsMobileDrawerOpen(false);
                   }}
                   onSelectTab={(tab) => {
@@ -324,13 +362,21 @@ function AppContent() {
           {/* Main Workspace Area */}
           <div className="flex-1 flex flex-col min-w-0 min-h-screen">
             {/* Top Workspace Header Bar (Sidebar Button + Mini Home Button + Theme Button + Minimalist Scroll Progress) */}
-            <header className="h-14 px-3 sm:px-6 flex items-center justify-between border-b border-[#F0E6E4] bg-white/95 backdrop-blur-md sticky top-0 z-30">
+            <header 
+              className="h-14 px-3 sm:px-6 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-30 transition-colors"
+              style={{ backgroundColor: theme.bgCard, borderColor: theme.borderSubtle }}
+            >
               {/* Left Controls: Sidebar Toggle + Mini Home Button */}
               <div className="flex items-center gap-1.5 sm:gap-2">
                 {/* Mobile Hamburger to open Subjects Sidebar Drawer */}
                 <button
                   onClick={() => setIsMobileDrawerOpen(true)}
-                  className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 active:scale-95"
+                  className="md:hidden p-2 rounded-xl transition-colors cursor-pointer border active:scale-95"
+                  style={{
+                    backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                    borderColor: theme.borderSubtle,
+                    color: theme.fontPrimary
+                  }}
                   title="Open sidebar"
                   aria-label="Open sidebar"
                 >
@@ -340,7 +386,12 @@ function AppContent() {
                 {/* Desktop Retract/Expand Sidebar Toggle */}
                 <button
                   onClick={() => setIsSidebarRetracted(!isSidebarRetracted)}
-                  className="hidden md:flex p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                  className="hidden md:flex p-2 rounded-xl transition-colors cursor-pointer border"
+                  style={{
+                    backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                    borderColor: theme.borderSubtle,
+                    color: theme.fontPrimary
+                  }}
                   title={isSidebarRetracted ? "Show sidebar" : "Hide sidebar"}
                 >
                   {isSidebarRetracted ? (
@@ -356,7 +407,12 @@ function AppContent() {
                     setPageView('home');
                     window.scrollTo({ top: 0, behavior: 'instant' });
                   }}
-                  className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 active:scale-95"
+                  className="p-2 rounded-xl transition-colors cursor-pointer border active:scale-95"
+                  style={{
+                    backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                    borderColor: theme.borderSubtle,
+                    color: theme.fontPrimary
+                  }}
                   title="Return to home"
                   aria-label="Return to home"
                 >

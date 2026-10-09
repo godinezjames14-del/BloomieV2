@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   FileText, 
   ChevronRight, 
   ChevronDown, 
-  CheckCircle2, 
-  Check, 
   BookOpen, 
   HelpCircle,
-  Plus,
-  Eye,
-  Award,
+  Sparkles,
+  CheckCircle2,
   PanelLeftClose,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import { Exam, Subject, Reviewer, WorkspaceTab } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
 import { ThemePicker } from './ThemePicker';
+import { formatScientificText } from '../utils/textFormatter';
 
 interface ExamSidebarProps {
-  exam: Exam;
+  exam: Exam; // Currently active exam
+  allExams?: Exam[]; // All exam entries
   activeSubjectId: string;
   activeReviewerId: string;
   activeTab: WorkspaceTab;
   onSelectReviewer: (subjectId: string, reviewerId: string, preferredTab?: WorkspaceTab) => void;
+  onSelectExam?: (examId: string, subjectId?: string, reviewerId?: string, preferredTab?: WorkspaceTab) => void;
   onSelectTab: (tab: WorkspaceTab) => void;
   onBackToHome: () => void;
   onCloseMobileDrawer?: () => void;
@@ -32,102 +33,101 @@ interface ExamSidebarProps {
 
 export const ExamSidebar: React.FC<ExamSidebarProps> = ({
   exam,
+  allExams = [exam],
   activeSubjectId,
   activeReviewerId,
   activeTab,
   onSelectReviewer,
+  onSelectExam,
   onSelectTab,
   onBackToHome,
   onCloseMobileDrawer,
-  onToggleRetract
+  onToggleRetract,
 }) => {
   const { theme } = useFlowerTheme();
   const [filterQuery, setFilterQuery] = useState('');
 
-  // Expand all subjects by default so users can see all subjects and reviewers!
-  const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>(() => {
+  // Keep track of which exams are expanded.
+  // Active exam is expanded by default, other entries are collapsed so users can easily jump between them.
+  const [expandedExams, setExpandedExams] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    exam.subjects.forEach(s => {
-      initial[s.id] = true;
+    allExams.forEach(e => {
+      initial[e.id] = e.id === exam.id;
     });
     return initial;
   });
 
-  // Ensure active subject is always expanded when changed
-  React.useEffect(() => {
-    if (activeSubjectId) {
-      setExpandedSubjects(prev => ({
-        ...prev,
-        [activeSubjectId]: true
-      }));
-    }
-  }, [activeSubjectId]);
-
-  const toggleSubject = (subjectId: string) => {
-    setExpandedSubjects(prev => ({
+  // Ensure currently active exam is expanded whenever it changes
+  useEffect(() => {
+    setExpandedExams(prev => ({
       ...prev,
-      [subjectId]: !prev[subjectId]
+      [exam.id]: true
+    }));
+  }, [exam.id]);
+
+  const toggleExam = (examId: string) => {
+    setExpandedExams(prev => ({
+      ...prev,
+      [examId]: !prev[examId]
     }));
   };
 
   const handleToggleAll = (expand: boolean) => {
     const updated: Record<string, boolean> = {};
-    exam.subjects.forEach(s => {
-      updated[s.id] = expand;
+    allExams.forEach(e => {
+      updated[e.id] = expand;
     });
-    setExpandedSubjects(updated);
+    setExpandedExams(updated);
   };
 
-  const areAllExpanded = exam.subjects.every(s => expandedSubjects[s.id]);
+  const areAllExpanded = allExams.every(e => expandedExams[e.id]);
 
-  const formatDateLabel = (dateStr?: string) => {
-    if (!dateStr) return '';
-    try {
-      const d = new Date(`${dateStr}T00:00:00`);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return dateStr;
+  // Filter exams and their reviewers based on search query
+  const filteredExams = allExams.map(entry => {
+    const query = filterQuery.toLowerCase().trim();
+    if (!query) return entry;
+
+    const entryMatches =
+      entry.title.toLowerCase().includes(query) ||
+      (entry.code && entry.code.toLowerCase().includes(query)) ||
+      (entry.description && entry.description.toLowerCase().includes(query));
+
+    const matchingSubjects = entry.subjects.map(subj => {
+      const subjMatches = subj.name.toLowerCase().includes(query);
+      const matchingRev = subj.reviewers.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        (r.fileName && r.fileName.toLowerCase().includes(query))
+      );
+      if (subjMatches) return subj;
+      if (matchingRev.length > 0) return { ...subj, reviewers: matchingRev };
+      return null;
+    }).filter(Boolean) as Subject[];
+
+    if (entryMatches) return entry;
+    if (matchingSubjects.length > 0) {
+      return { ...entry, subjects: matchingSubjects };
     }
-  };
+    return null;
+  }).filter(Boolean) as Exam[];
 
   const activeSubject = exam.subjects.find(s => s.id === activeSubjectId) || exam.subjects[0];
   const activeReviewer =
     activeSubject?.reviewers.find(r => r.id === activeReviewerId) ||
     activeSubject?.reviewers[0];
 
-  // Filter subjects and reviewers
-  const filteredSubjects = exam.subjects.map(subj => {
-    const query = filterQuery.toLowerCase().trim();
-    if (!query) return subj;
-    const subjMatches = subj.name.toLowerCase().includes(query);
-    const matchingReviewers = subj.reviewers.filter(r =>
-      r.name.toLowerCase().includes(query) ||
-      (r.fileName && r.fileName.toLowerCase().includes(query)) ||
-      (r.fileSnippet && r.fileSnippet.toLowerCase().includes(query))
-    );
-    if (subjMatches) return subj;
-    if (matchingReviewers.length > 0) {
-      return {
-        ...subj,
-        reviewers: matchingReviewers
-      };
-    }
-    return null;
-  }).filter(Boolean) as Subject[];
-
   return (
-    <aside className="w-80 min-w-[20rem] bg-white border-r border-[#EAE2E0] flex flex-col justify-between h-screen sticky top-0 z-30 select-none">
-      {/* Scrollable Subjects & Reviewers Area */}
+    <aside 
+      className="w-80 min-w-[20rem] border-r flex flex-col justify-between h-screen sticky top-0 z-30 select-none transition-colors"
+      style={{ backgroundColor: theme.bgCard, borderColor: theme.borderSubtle, color: theme.fontPrimary }}
+    >
+      {/* Scrollable Entries & Reviewers Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {/* Top Header: Back to Home + Retract Toggle + Close for Mobile Drawer */}
         <div className="flex items-center justify-between">
           <button
             onClick={onBackToHome}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 px-2 py-1 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
+            className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-xl transition-colors cursor-pointer group hover:opacity-80"
+            style={{ color: theme.fontMuted }}
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>Exams</span>
@@ -137,7 +137,8 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
             {onToggleRetract && (
               <button
                 onClick={onToggleRetract}
-                className="hidden md:flex p-1.5 rounded-xl text-[#8C8385] hover:text-[#2D2A2E] hover:bg-[#FAF4F3] transition-colors cursor-pointer"
+                className="hidden md:flex p-1.5 rounded-xl hover:opacity-80 transition-colors cursor-pointer"
+                style={{ color: theme.fontMuted }}
                 title="Collapse sidebar"
               >
                 <PanelLeftClose className="w-4 h-4" />
@@ -147,8 +148,9 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
             {onCloseMobileDrawer && (
               <button
                 onClick={onCloseMobileDrawer}
-                className="p-1.5 rounded-xl text-[#8C8385] hover:text-[#2D2A2E] hover:bg-[#FAF4F3] transition-colors md:hidden cursor-pointer"
-                title="Close subjects drawer"
+                className="p-1.5 rounded-xl hover:opacity-80 transition-colors md:hidden cursor-pointer"
+                style={{ color: theme.fontMuted }}
+                title="Close drawer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -156,22 +158,28 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
           </div>
         </div>
 
-        {/* Filter Input for Subjects and Reviewers */}
+        {/* Filter / Search Input */}
         <div className="relative">
           <input
             type="text"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            placeholder="Search..."
-            className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl bg-[#FAF6F5] border border-[#EFE5E3] focus:outline-none focus:border-[#CBD5E1] text-[#2D2A2E] placeholder-[#94A3B8]"
+            placeholder="Search subjects & quizzes..."
+            className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border focus:outline-none transition-colors"
+            style={{
+              backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+              borderColor: theme.borderSubtle,
+              color: theme.fontPrimary
+            }}
           />
-          <div className="absolute left-2.5 top-2 text-[#94A3B8]">
-            <BookOpen className="w-3.5 h-3.5" />
+          <div className="absolute left-2.5 top-2" style={{ color: theme.fontMuted }}>
+            <Search className="w-3.5 h-3.5" />
           </div>
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
-              className="absolute right-2.5 top-1.5 text-xs text-[#94A3B8] hover:text-[#2D2A2E]"
+              className="absolute right-2.5 top-1.5 text-xs hover:opacity-80"
+              style={{ color: theme.fontMuted }}
             >
               ✕
             </button>
@@ -179,121 +187,145 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
         </div>
 
         {/* Section Header with Expand / Collapse All */}
-        <div className="flex items-center justify-between px-1 text-[11px] text-[#8C8385] pt-1">
+        <div className="flex items-center justify-between px-1 text-[11px] pt-1" style={{ color: theme.fontMuted }}>
           <span className="font-bold uppercase tracking-wider text-[10px]">
-            Subjects ({filteredSubjects.length})
+            Subjects ({allExams.length})
           </span>
           <button
             onClick={() => handleToggleAll(!areAllExpanded)}
-            className="hover:text-[#231F20] font-medium transition-colors cursor-pointer text-[10px]"
+            className="hover:underline font-medium transition-colors cursor-pointer text-[10px]"
           >
             {areAllExpanded ? 'Collapse All' : 'Expand All'}
           </button>
         </div>
 
-        {/* ALL SUBJECTS LIST matching reference image */}
-        <div className="space-y-1">
-          {filteredSubjects.length === 0 ? (
-            <div className="p-4 text-center text-xs text-[#94A3B8]">
-              No subjects or reviewers match "{filterQuery}"
+        {/* ALL ENTRIES LIST (Active is expanded, others collapsed for easy jumping) */}
+        <div className="space-y-1.5">
+          {filteredExams.length === 0 ? (
+            <div className="p-4 text-center text-xs" style={{ color: theme.fontMuted }}>
+              No subjects match "{filterQuery}"
             </div>
           ) : (
-            filteredSubjects.map((subj) => {
-              const isExpanded = expandedSubjects[subj.id] ?? true;
-              const isSubjActive = subj.id === activeSubjectId;
+            filteredExams.map((entry) => {
+              const isEntryActive = entry.id === exam.id;
+              const isExpanded = expandedExams[entry.id] ?? isEntryActive;
+
+              // Collect reviewers for this entry
+              const primarySubject = entry.subjects[0];
+              const reviewersList = entry.subjects.flatMap(s => 
+                s.reviewers.map(r => ({ ...r, subjectId: s.id }))
+              );
 
               return (
-                <div key={subj.id} className="border-b border-[#F5ECE9]/60 pb-1">
-                  {/* Subject Header Row matching screenshot */}
-                  <button
-                    onClick={() => toggleSubject(subj.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer group ${
-                      isSubjActive
-                        ? 'text-[#0F172A] font-bold bg-[#FAF4F3]'
-                        : 'text-[#334155] hover:text-[#0F172A] hover:bg-[#FAF6F5]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: isSubjActive ? theme.primary : '#94A3B8' }}
-                      />
-                      <span className="text-[12px] font-bold tracking-wider uppercase truncate">
-                        {subj.name}
-                      </span>
-                      <span className="text-[10px] text-[#94A3B8] font-normal">
-                        ({subj.reviewers.length})
-                      </span>
-                    </div>
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-[#94A3B8] group-hover:text-[#64748B] transition-transform shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#64748B] transition-transform shrink-0" />
-                    )}
-                  </button>
+                <div key={entry.id} className="border-b pb-1.5" style={{ borderColor: theme.borderSubtle }}>
+                  {/* Entry Header: Click to jump or expand */}
+                  <div className="flex items-center justify-between group">
+                    <button
+                      onClick={() => {
+                        toggleExam(entry.id);
+                        if (!isEntryActive && onSelectExam) {
+                          onSelectExam(entry.id);
+                          onCloseMobileDrawer?.();
+                        }
+                      }}
+                      className="flex-1 flex items-start justify-between gap-2 px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer hover:opacity-90"
+                      style={{
+                        backgroundColor: isEntryActive ? theme.primaryLight : undefined,
+                        color: isEntryActive ? theme.primary : theme.fontPrimary
+                      }}
+                    >
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0 mt-1.5"
+                          style={{
+                            backgroundColor: isEntryActive ? (primarySubject?.color || theme.primary) : theme.borderSubtle
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          {entry.code && (
+                            <div className="mb-0.5">
+                              <span 
+                                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded inline-block leading-none"
+                                style={{ 
+                                  backgroundColor: isEntryActive ? theme.primary : (theme.isInverted ? 'rgba(255,255,255,0.08)' : theme.primaryLight),
+                                  color: isEntryActive ? '#FFFFFF' : theme.primary 
+                                }}
+                              >
+                                {entry.code}
+                              </span>
+                            </div>
+                          )}
+                          <p 
+                            className="text-[12px] font-bold tracking-tight leading-snug break-words"
+                            title={entry.title}
+                          >
+                            {formatScientificText(entry.title)}
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Sub-items when expanded */}
+                      <div className="mt-1 shrink-0" style={{ color: theme.fontMuted }}>
+                        {isExpanded ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Reviewers List when expanded */}
                   {isExpanded && (
-                    <div className="space-y-1 pl-1 pr-1 pb-2 animate-in fade-in-50 duration-150">
-                      {subj.reviewers.map((rev) => {
-                        const isRevSelected = isSubjActive && rev.id === activeReviewerId;
+                    <div className="space-y-1 pl-2 pr-1 pt-1 animate-in fade-in-50 duration-150">
+                      {reviewersList.map((rev) => {
+                        const isRevSelected = isEntryActive && rev.id === activeReviewerId;
                         const isNotesItem = rev.name.toLowerCase().includes('notes');
-                        const isCompletedPrelimOrQuiz = rev.name.includes('✓') || rev.quizAccuracy?.completed;
+                        const isIdentItem = rev.name.toLowerCase().includes('identification');
 
                         return (
                           <div
                             key={rev.id}
                             onClick={() => {
-                              const targetTab = isNotesItem ? 'notes' : 'quiz';
-                              onSelectReviewer(subj.id, rev.id, targetTab);
+                              const targetTab: WorkspaceTab = isNotesItem ? 'notes' : 'quiz';
+                              if (onSelectExam) {
+                                onSelectExam(entry.id, rev.subjectId, rev.id, targetTab);
+                              } else {
+                                onSelectReviewer(rev.subjectId, rev.id, targetTab);
+                              }
                               onCloseMobileDrawer?.();
                             }}
-                            className={`w-full flex items-start gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                              isRevSelected
-                                ? 'bg-[#E0F4F4] shadow-2xs font-semibold'
-                                : 'hover:bg-[#FAF4F3] text-[#475569]'
-                            }`}
+                            className="w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all hover:opacity-90"
                             style={{
-                              backgroundColor: isRevSelected ? '#E0F4F4' : undefined
+                              backgroundColor: isRevSelected ? theme.primaryLight : undefined,
+                              color: isRevSelected ? theme.primary : theme.fontBody
                             }}
                           >
-                            {/* Item Icon */}
-                            <div className="mt-0.5 shrink-0">
-                              {isCompletedPrelimOrQuiz ? (
-                                <FileText className={`w-4 h-4 ${isRevSelected ? 'text-[#0E7490]' : 'text-[#64748B]'}`} />
-                              ) : isNotesItem ? (
-                                <BookOpen className={`w-4 h-4 ${isRevSelected ? 'text-[#0E7490]' : 'text-[#64748B]'}`} />
-                              ) : (
-                                <FileText className={`w-4 h-4 ${isRevSelected ? 'text-[#0E7490]' : 'text-[#64748B]'}`} />
-                              )}
-                            </div>
-
-                            {/* Item Title and Date Subtitle matching reference */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-1">
-                                <span
-                                  className={`text-xs truncate ${
-                                    isRevSelected ? 'font-bold text-[#0E7490]' : 'text-[#334155]'
-                                  }`}
-                                >
-                                  {rev.name}
-                                </span>
-                                {rev.quizAccuracy?.completed && (
-                                  <span className="text-[10px] text-emerald-700 font-bold shrink-0">
-                                    {rev.quizAccuracy.scorePercent}%
-                                  </span>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <div className="shrink-0" style={{ color: isRevSelected ? theme.primary : theme.fontMuted }}>
+                                {isNotesItem ? (
+                                  <BookOpen className="w-3.5 h-3.5" />
+                                ) : isIdentItem ? (
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                ) : (
+                                  <HelpCircle className="w-3.5 h-3.5" />
                                 )}
                               </div>
-
-                              {/* Date Subtitle matching screenshot (e.g. Oct 5, 2026) */}
-                              {rev.testDate && (
-                                <p className={`text-[10px] mt-0.5 truncate ${
-                                  isRevSelected ? 'text-[#0E7490]/80 font-medium' : 'text-[#94A3B8]'
-                                }`}>
-                                  {formatDateLabel(rev.testDate)}
-                                </p>
-                              )}
+                              <span
+                                className={`text-xs leading-snug break-words flex-1 min-w-0 ${
+                                  isRevSelected ? 'font-bold' : ''
+                                }`}
+                                style={{ color: isRevSelected ? theme.primary : theme.fontBody }}
+                                title={rev.name}
+                              >
+                                {formatScientificText(rev.name)}
+                              </span>
                             </div>
+
+                            {rev.quizAccuracy?.completed && (
+                              <span className="text-[10px] text-emerald-600 font-bold shrink-0">
+                                {rev.quizAccuracy.scorePercent}%
+                              </span>
+                            )}
                           </div>
                         );
                       })}
@@ -306,14 +338,26 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom Footer with Theme Picker */}
-      <div className="p-4 border-t border-[#EAE2E0] bg-[#FCF8F7] flex justify-between items-center">
+      {/* Bottom Footer with Active Reviewer & Theme Picker */}
+      <div 
+        className="p-3.5 border-t flex justify-between items-center gap-2 transition-colors"
+        style={{
+          backgroundColor: theme.isInverted ? 'rgba(0,0,0,0.18)' : theme.bgPage,
+          borderColor: theme.borderSubtle
+        }}
+      >
         {activeReviewer && (
-          <span className="text-[11px] font-semibold text-[#334155] truncate max-w-[170px]">
+          <span 
+            className="text-[11px] font-semibold truncate flex-1 min-w-0"
+            style={{ color: theme.fontPrimary }}
+            title={activeReviewer.name}
+          >
             {activeReviewer.name}
           </span>
         )}
-        <ThemePicker />
+        <div className="shrink-0">
+          <ThemePicker />
+        </div>
       </div>
     </aside>
   );

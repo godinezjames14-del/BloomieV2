@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { 
   Sparkles, 
-  Clock, 
-  Eye,
-  Award,
-  Search,
-  ArrowRight
+  Search, 
+  ArrowRight 
 } from 'lucide-react';
 import { Exam } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
 import { ThemePicker } from './ThemePicker';
+import { formatScientificText } from '../utils/textFormatter';
 
 interface HomePageProps {
   exams: Exam[];
@@ -21,45 +19,27 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectExam
 }) => {
   const { theme } = useFlowerTheme();
-  const [filterTab, setFilterTab] = useState<'all' | 'upcoming' | 'past'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const upcomingExams = exams.filter(e => e.status === 'upcoming');
-  const pastExams = exams.filter(e => e.status === 'past');
-
   const filteredExams = exams.filter(e => {
-    const matchesTab = filterTab === 'all' || e.status === filterTab;
-    const matchesSearch =
-      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.code && e.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.subjects.some(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesTab && matchesSearch;
+    const cleanSearch = searchQuery.toLowerCase().trim();
+    if (!cleanSearch) return true;
+
+    return (
+      e.title.toLowerCase().includes(cleanSearch) ||
+      (e.code && e.code.toLowerCase().includes(cleanSearch)) ||
+      e.description.toLowerCase().includes(cleanSearch) ||
+      e.subjects.some(s => s.name.toLowerCase().includes(cleanSearch))
+    );
   });
 
-  const calculateDaysLeft = (dateStr: string) => {
-    const now = new Date();
-    const target = new Date(`${dateStr}T00:00:00`);
-    return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
-  const formatDateDisplay = (dateStr: string) => {
-    try {
-      const d = new Date(`${dateStr}T00:00:00`);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
-    <div className="min-h-screen text-slate-800" style={{ backgroundColor: theme.bgPage }}>
+    <div className="min-h-screen antialiased" style={{ backgroundColor: theme.bgPage, color: theme.fontPrimary }}>
       {/* Clean Top Navigation Bar */}
-      <header className="h-16 px-4 sm:px-10 flex items-center justify-between border-b border-[#F0E6E4] bg-white/80 backdrop-blur-sm sticky top-0 z-30">
+      <header 
+        className="h-16 px-4 sm:px-10 flex items-center justify-between border-b backdrop-blur-sm sticky top-0 z-30"
+        style={{ borderColor: theme.borderSubtle, backgroundColor: `${theme.bgCard}E6` }}
+      >
         <div className="flex items-center gap-2.5">
           <div 
             className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-xs"
@@ -67,7 +47,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           >
             <Sparkles className="w-3.5 h-3.5 fill-white" />
           </div>
-          <span className="font-serif text-xl font-bold tracking-tight text-slate-900">
+          <span className="font-serif text-xl font-bold tracking-tight">
             Bloomie<span style={{ color: theme.primary }}>.</span>
           </span>
         </div>
@@ -78,110 +58,73 @@ export const HomePage: React.FC<HomePageProps> = ({
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-8 space-y-6 animate-in fade-in duration-200">
-        {/* Minimal Header */}
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-8 space-y-6 animate-in fade-in duration-200">
+        {/* Header & Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-slate-900">
+            <h1 className="font-serif text-2xl sm:text-3xl font-semibold">
               Exams
             </h1>
           </div>
 
-          {/* Filter & Search Bar */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center bg-[#FAF7F6] p-1 rounded-xl border border-slate-200 text-xs overflow-x-auto max-w-full">
-              <button
-                onClick={() => setFilterTab('all')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
-                  filterTab === 'all'
-                    ? 'bg-white shadow-2xs font-bold text-slate-900'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                All ({exams.length})
-              </button>
-              <button
-                onClick={() => setFilterTab('upcoming')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
-                  filterTab === 'upcoming'
-                    ? 'bg-white shadow-2xs font-bold text-slate-900'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Upcoming ({upcomingExams.length})
-              </button>
-              <button
-                onClick={() => setFilterTab('past')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer shrink-0 ${
-                  filterTab === 'past'
-                    ? 'bg-white shadow-2xs font-bold text-slate-900'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Past ({pastExams.length})
-              </button>
-            </div>
-
-            <div className="relative w-full sm:w-auto">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none w-full sm:w-48 focus:border-slate-400"
-              />
-            </div>
+          <div className="relative w-full sm:w-auto">
+            <Search className="w-3.5 h-3.5 opacity-40 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none w-full sm:w-56 focus:ring-1 transition-all"
+              style={{ 
+                backgroundColor: theme.bgCard,
+                borderColor: theme.borderSubtle,
+                color: theme.fontPrimary
+              }}
+            />
           </div>
         </div>
 
-        {/* Minimal Exams List */}
+        {/* Minimal Exams List - Clean, Simple, No Dates, No "1 subjects" */}
         <div className="space-y-4">
           {filteredExams.map((exam) => {
-            const daysLeft = calculateDaysLeft(exam.date);
-            const isUpcoming = exam.status === 'upcoming';
-
             return (
               <div
                 key={exam.id}
                 onClick={() => onSelectExam(exam.id)}
-                className="bg-white rounded-2xl p-4 sm:p-6 border border-[#EFE5E3] hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer space-y-3.5 group"
+                className="rounded-2xl p-4 sm:p-6 border hover:shadow-xs transition-all cursor-pointer space-y-3.5 group"
+                style={{ 
+                  backgroundColor: theme.bgCard,
+                  borderColor: theme.borderSubtle 
+                }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    {exam.code && (
-                      <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                        {exam.code}
-                      </span>
-                    )}
-                    <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-black">
-                      {exam.title}
-                    </h2>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0">
-                    {isUpcoming ? (
-                      <span 
-                        className="inline-flex items-center gap-1 font-semibold text-xs"
-                        style={{ color: theme.primary }}
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{daysLeft > 0 ? `${daysLeft}d left` : 'Today'}</span>
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">Past</span>
-                    )}
-                    <span>·</span>
-                    <span>{formatDateDisplay(exam.date)}</span>
-                  </div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {exam.code && (
+                    <span 
+                      className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md shrink-0"
+                      style={{ backgroundColor: theme.primaryLight, color: theme.primary }}
+                    >
+                      {exam.code}
+                    </span>
+                  )}
+                  <h2 className="font-serif text-xl sm:text-2xl font-bold group-hover:underline break-words">
+                    {formatScientificText(exam.title)}
+                  </h2>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 pt-1 border-t border-slate-100">
-                  <div className="flex items-center gap-4">
-                    <span>{exam.subjects.length} subjects</span>
-                  </div>
+                {exam.description && (
+                  <p className="text-xs sm:text-sm opacity-75 leading-relaxed line-clamp-2 break-words">
+                    {formatScientificText(exam.description)}
+                  </p>
+                )}
 
-                  <span className="font-semibold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform" style={{ color: theme.primary }}>
+                <div 
+                  className="flex items-center justify-end text-xs opacity-75 pt-2 border-t"
+                  style={{ borderColor: theme.borderSubtle }}
+                >
+                  <span 
+                    className="font-semibold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform shrink-0" 
+                    style={{ color: theme.primary }}
+                  >
                     <span>Open</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>

@@ -34,7 +34,7 @@ export interface Reviewer {
   name: string;
   fileName: string;
   fileSnippet?: string;
-  testDate: string; // YYYY-MM-DD
+  testDate?: string; // YYYY-MM-DD (optional)
   questionTypes: QuestionType[];
   questionCount: number;
   notes: NoteItem[];
@@ -60,8 +60,8 @@ export interface Exam {
   title: string;
   code?: string;
   description: string;
-  date: string; // YYYY-MM-DD
-  status: 'upcoming' | 'past';
+  date?: string; // YYYY-MM-DD (optional)
+  status?: 'upcoming' | 'past';
   subjects: Subject[];
 }
 

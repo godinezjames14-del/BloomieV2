@@ -10,10 +10,12 @@ import {
   Award, 
   BookOpen, 
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Shuffle
 } from 'lucide-react';
 import { QuizQuestion, Reviewer, QuestionType, ActiveTab, QuizAccuracyResult, Subject, WorkspaceTab } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
+import { formatScientificText } from '../utils/textFormatter';
 
 interface QuestionAnswerState {
   submitted: boolean;
@@ -55,6 +57,45 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, QuestionAnswerState>>({});
   const [isQuizFinished, setIsQuizFinished] = useState(false);
+
+  // Dynamic shuffled options map per question for authentic randomized choices
+  const [shuffledOptions, setShuffledOptions] = useState<Record<string, string[]>>({});
+
+  // Helper to randomize an array of options
+  const shuffleOptionsArray = (arr: string[]) => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+
+  // Re-shuffle options whenever reviewer changes
+  React.useEffect(() => {
+    const map: Record<string, string[]> = {};
+    questions.forEach((q) => {
+      if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
+        map[q.id] = shuffleOptionsArray(q.options);
+      }
+    });
+    setShuffledOptions(map);
+  }, [currentReviewer.id, questions.length]);
+
+  // Manually re-shuffle choices on demand
+  const handleShuffleChoices = () => {
+    const map: Record<string, string[]> = {};
+    questions.forEach((q) => {
+      if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
+        map[q.id] = shuffleOptionsArray(q.options);
+      }
+    });
+    setShuffledOptions(map);
+    // If current question isn't submitted yet, reset chosen option so choice doesn't stick
+    if (!answers[currentIndex]?.submitted) {
+      setActiveMCOption(null);
+    }
+  };
 
   // Active question working inputs (before submitting)
   const currentAnswerState = answers[currentIndex];
@@ -218,6 +259,14 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   // Restart Quiz
   const handleRestartQuiz = () => {
+    // Re-shuffle options on restart for fresh randomized order
+    const map: Record<string, string[]> = {};
+    questions.forEach((q) => {
+      if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
+        map[q.id] = shuffleOptionsArray(q.options);
+      }
+    });
+    setShuffledOptions(map);
     setAnswers({});
     setCurrentIndex(0);
     setActiveMCOption(null);
@@ -274,29 +323,65 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <span>·</span>
             <span>{currentReviewer.name}</span>
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-slate-900">
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold" style={{ color: theme.fontPrimary }}>
             Questions
           </h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          {/* Shuffle Choices Button */}
+          {questions.some(q => q.type === 'multiple_choice') && (
+            <button
+              onClick={handleShuffleChoices}
+              className="px-3.5 py-1.5 rounded-xl border transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              style={{
+                backgroundColor: theme.bgCard,
+                borderColor: theme.borderSubtle,
+                color: theme.fontPrimary
+              }}
+              title="Shuffle multiple-choice answer options"
+            >
+              <Shuffle className="w-3.5 h-3.5" style={{ color: theme.primary }} />
+              <span>Shuffle Answers</span>
+            </button>
+          )}
+
           {/* Prominent Restart Quiz Button */}
           <button
             onClick={handleRestartQuiz}
-            className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-3.5 py-1.5 rounded-xl border transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+            style={{
+              backgroundColor: theme.bgCard,
+              borderColor: theme.borderSubtle,
+              color: theme.fontPrimary
+            }}
             title="Restart quiz from question 1"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+            <RotateCcw className="w-3.5 h-3.5" style={{ color: theme.primary }} />
             <span>Restart Quiz</span>
           </button>
 
-          <div className="bg-white border border-[#EFE5E3] px-3 py-1.5 rounded-xl font-medium text-slate-600 flex items-center gap-1.5">
+          <div 
+            className="border px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5"
+            style={{
+              backgroundColor: theme.bgCard,
+              borderColor: theme.borderSubtle,
+              color: theme.fontMuted
+            }}
+          >
             <span>Score:</span>
-            <span className="font-bold text-slate-900">{totalScore}</span>
+            <span className="font-bold" style={{ color: theme.fontPrimary }}>{totalScore}</span>
           </div>
 
-          <div className="bg-white border border-[#EFE5E3] px-3 py-1.5 rounded-xl font-medium text-slate-600 flex items-center gap-1.5">
-            <span className="font-bold text-slate-900" style={{ color: theme.primary }}>
+          <div 
+            className="border px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5"
+            style={{
+              backgroundColor: theme.bgCard,
+              borderColor: theme.borderSubtle,
+              color: theme.fontMuted
+            }}
+          >
+            <span className="font-bold" style={{ color: theme.primary }}>
               {answeredCount}/{questions.length}
             </span>
           </div>
@@ -304,18 +389,27 @@ export const QuizView: React.FC<QuizViewProps> = ({
       </div>
 
       {/* VISUAL QUESTIONS GRID & BOX - SKIP THROUGH NUMBERS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#EFE5E3] shadow-2xs space-y-3">
+      <div 
+        className="rounded-2xl p-4 sm:p-5 border shadow-2xs space-y-3 transition-colors"
+        style={{
+          backgroundColor: theme.bgCard,
+          borderColor: theme.borderSubtle
+        }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-slate-700 font-medium">
+          <div className="flex items-center gap-2 font-medium" style={{ color: theme.fontPrimary }}>
             <span>Select Question</span>
-            <span className="text-slate-300">·</span>
-            <span className="text-slate-500 text-xs">
+            <span style={{ color: theme.fontMuted }}>·</span>
+            <span className="text-xs" style={{ color: theme.fontMuted }}>
               {remainingCount} left
             </span>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-slate-500">
+          <div className="flex items-center gap-3 text-[11px]" style={{ color: theme.fontMuted }}>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded bg-white border border-slate-300" />
+              <span 
+                className="w-2.5 h-2.5 rounded border" 
+                style={{ backgroundColor: theme.bgPage, borderColor: theme.borderSubtle }}
+              />
               <span>Unanswered</span>
             </span>
             <span className="flex items-center gap-1.5">
@@ -337,14 +431,20 @@ export const QuizView: React.FC<QuizViewProps> = ({
             const isSubmitted = Boolean(state?.submitted);
             const isCorrect = state?.isCorrect;
 
-            let boxStyle = "bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50";
+            let customBg = theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage;
+            let customText = theme.fontPrimary;
+            let customBorder = theme.borderSubtle;
+
             if (isSubmitted) {
-              boxStyle = isCorrect
-                ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
-                : "bg-rose-50 text-rose-800 border-rose-300 font-bold";
-            }
-            if (isCurrent) {
-              boxStyle += " ring-2 ring-offset-1 font-bold shadow-xs";
+              if (isCorrect) {
+                customBg = theme.isInverted ? 'rgba(16, 185, 129, 0.2)' : '#ECFDF5';
+                customText = theme.isInverted ? '#6EE7B7' : '#065F46';
+                customBorder = theme.isInverted ? '#059669' : '#A7F3D0';
+              } else {
+                customBg = theme.isInverted ? 'rgba(244, 63, 94, 0.2)' : '#FFF1F2';
+                customText = theme.isInverted ? '#FDA4AF' : '#9F1239';
+                customBorder = theme.isInverted ? '#E11D48' : '#FECDD3';
+              }
             }
 
             return (
@@ -352,9 +452,13 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 key={q.id}
                 onClick={() => handleJumpToQuestion(idx)}
                 title={`Question ${idx + 1}${isSubmitted ? (isCorrect ? ' · Correct' : ' · Needs Review') : ' · Click to jump'}`}
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center transition-all cursor-pointer ${boxStyle}`}
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                  isCurrent ? 'ring-2 ring-offset-1 font-bold shadow-xs' : ''
+                }`}
                 style={{
-                  borderColor: isCurrent ? theme.primary : undefined,
+                  backgroundColor: customBg,
+                  borderColor: isCurrent ? theme.primary : customBorder,
+                  color: customText,
                   boxShadow: isCurrent ? `0 0 0 2px ${theme.primary}` : undefined
                 }}
               >
@@ -368,9 +472,15 @@ export const QuizView: React.FC<QuizViewProps> = ({
       {!isQuizFinished ? (
         /* QUESTION CARD */
         currentQ && (
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EFE5E3] shadow-2xs space-y-6">
+          <div 
+            className="rounded-3xl p-6 sm:p-8 border shadow-2xs space-y-6 transition-colors"
+            style={{
+              backgroundColor: theme.bgCard,
+              borderColor: theme.borderSubtle
+            }}
+          >
             {/* Header: Question Number & Points */}
-            <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between text-xs pb-3 border-b" style={{ borderColor: theme.borderSubtle }}>
               <div className="flex items-center gap-2">
                 <span
                   className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold"
@@ -378,44 +488,53 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 >
                   Question {currentIndex + 1} of {questions.length}
                 </span>
-                <span className="text-slate-500 capitalize">
+                <span className="capitalize" style={{ color: theme.fontMuted }}>
                   {currentQ.type.replace('_', ' ')}
                 </span>
               </div>
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-semibold" style={{ color: theme.fontMuted }}>
                 +{currentQ.points} points
               </span>
             </div>
 
             {/* Prompt */}
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
-              {currentQ.question}
+            <h2 className="font-serif text-xl sm:text-2xl font-bold leading-snug" style={{ color: theme.fontPrimary }}>
+              {formatScientificText(currentQ.question)}
             </h2>
 
             {/* INPUTS BY TYPE */}
             <div className="pt-1">
               {/* Multiple Choice */}
-              {currentQ.type === 'multiple_choice' && currentQ.options && (
+              {currentQ.type === 'multiple_choice' && (
                 <div className="space-y-2.5">
-                  {currentQ.options.map((option, idx) => {
+                  {(shuffledOptions[currentQ.id] || currentQ.options || []).map((option, idx) => {
                     const isSelected = isCurrentSubmitted 
-                      ? answers[currentIndex]?.selectedMCOption === option
+                        ? answers[currentIndex]?.selectedMCOption === option
                       : activeMCOption === option;
                     const isOptionCorrect =
                       normalize(option) === normalize(currentQ.correctAnswer as string);
 
-                    let buttonStyle = 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800';
+                    let optionBg = theme.isInverted ? 'rgba(255,255,255,0.04)' : theme.bgPage;
+                    let optionColor = theme.fontPrimary;
+                    let optionBorder = theme.borderSubtle;
 
                     if (isCurrentSubmitted) {
                       if (isOptionCorrect) {
-                        buttonStyle = 'border-emerald-300 bg-emerald-50 text-emerald-950 font-semibold ring-1 ring-emerald-400';
+                        optionBg = theme.isInverted ? 'rgba(16, 185, 129, 0.2)' : '#ECFDF5';
+                        optionColor = theme.isInverted ? '#6EE7B7' : '#065F46';
+                        optionBorder = '#10B981';
                       } else if (isSelected && !isOptionCorrect) {
-                        buttonStyle = 'border-rose-300 bg-rose-50 text-rose-950 ring-1 ring-rose-400';
+                        optionBg = theme.isInverted ? 'rgba(244, 63, 94, 0.2)' : '#FFF1F2';
+                        optionColor = theme.isInverted ? '#FDA4AF' : '#9F1239';
+                        optionBorder = '#F43F5E';
                       } else {
-                        buttonStyle = 'border-slate-200 bg-white opacity-40';
+                        optionBg = theme.isInverted ? 'rgba(255,255,255,0.02)' : theme.bgPage;
+                        optionBorder = theme.borderSubtle;
                       }
                     } else if (isSelected) {
-                      buttonStyle = 'border-transparent font-semibold shadow-xs';
+                      optionBg = theme.primaryLight;
+                      optionColor = theme.primary;
+                      optionBorder = theme.primary;
                     }
 
                     return (
@@ -423,21 +542,29 @@ export const QuizView: React.FC<QuizViewProps> = ({
                         key={idx}
                         disabled={isCurrentSubmitted}
                         onClick={() => setActiveMCOption(option)}
-                        className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm transition-all flex items-center justify-between gap-3 cursor-pointer ${buttonStyle}`}
+                        className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                          isSelected && !isCurrentSubmitted ? 'font-semibold shadow-xs' : ''
+                        } ${isCurrentSubmitted && !isOptionCorrect && !isSelected ? 'opacity-40' : ''}`}
                         style={{
-                          backgroundColor: !isCurrentSubmitted && isSelected ? theme.primaryLight : undefined,
-                          borderColor: !isCurrentSubmitted && isSelected ? theme.primary : undefined,
-                          color: !isCurrentSubmitted && isSelected ? theme.primary : undefined
+                          backgroundColor: optionBg,
+                          borderColor: optionBorder,
+                          color: optionColor
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-lg bg-black/5 flex items-center justify-center text-xs font-bold shrink-0">
+                          <span 
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                            style={{
+                              backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                              color: theme.fontPrimary
+                            }}
+                          >
                             {String.fromCharCode(65 + idx)}
                           </span>
-                          <span>{option}</span>
+                          <span>{formatScientificText(option)}</span>
                         </div>
                         {isCurrentSubmitted && isOptionCorrect && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                         )}
                         {isCurrentSubmitted && isSelected && !isOptionCorrect && (
                           <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
@@ -451,7 +578,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
               {/* Identification */}
               {currentQ.type === 'identification' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-600">
+                  <label className="block text-xs font-medium" style={{ color: theme.fontMuted }}>
                     Your Answer:
                   </label>
                   <input
@@ -465,7 +592,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                       }
                     }}
                     placeholder="Type the exact term or concept..."
-                    className="w-full bg-[#FAF7F6] border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-400 transition-all"
+                    className="w-full border rounded-2xl px-4 py-3 text-sm outline-none transition-all"
+                    style={{
+                      backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                      borderColor: theme.borderSubtle,
+                      color: theme.fontPrimary
+                    }}
                   />
                 </div>
               )}
@@ -473,14 +605,14 @@ export const QuizView: React.FC<QuizViewProps> = ({
               {/* Enumeration */}
               {currentQ.type === 'enumeration' && (
                 <div className="space-y-2.5">
-                  <div className="text-xs text-slate-600">
+                  <div className="text-xs" style={{ color: theme.fontMuted }}>
                     <label className="block font-medium">
                       List {Array.isArray(currentQ.correctAnswer) ? currentQ.correctAnswer.length : ''} items:
                     </label>
                   </div>
                   {(isCurrentSubmitted ? (answers[currentIndex]?.enumerationInputs || []) : activeEnumInputs).map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 w-6">#{idx + 1}</span>
+                      <span className="text-xs font-bold w-6" style={{ color: theme.fontMuted }}>#{idx + 1}</span>
                       <input
                         type="text"
                         disabled={isCurrentSubmitted}
@@ -491,7 +623,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                           setActiveEnumInputs(copy);
                         }}
                         placeholder={`Item ${idx + 1}`}
-                        className="flex-1 bg-[#FAF7F6] border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-400"
+                        className="flex-1 border rounded-xl px-3.5 py-2 text-xs outline-none transition-all"
+                        style={{
+                          backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                          borderColor: theme.borderSubtle,
+                          color: theme.fontPrimary
+                        }}
                       />
                     </div>
                   ))}
@@ -501,7 +638,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
               {/* Essay */}
               {currentQ.type === 'essay' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-medium text-slate-600">
+                  <label className="block text-xs font-medium" style={{ color: theme.fontMuted }}>
                     Explanation:
                   </label>
                   <textarea
@@ -510,7 +647,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     value={isCurrentSubmitted ? (answers[currentIndex]?.essayInput || '') : activeEssayInput}
                     onChange={(e) => setActiveEssayInput(e.target.value)}
                     placeholder="Write your explanation here..."
-                    className="w-full bg-[#FAF7F6] border border-slate-200 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 outline-none focus:border-slate-400 resize-none leading-relaxed"
+                    className="w-full border rounded-2xl p-4 text-xs sm:text-sm outline-none resize-none leading-relaxed transition-all"
+                    style={{
+                      backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgPage,
+                      borderColor: theme.borderSubtle,
+                      color: theme.fontPrimary
+                    }}
                   />
                 </div>
               )}
@@ -521,22 +663,22 @@ export const QuizView: React.FC<QuizViewProps> = ({
               <div
                 className={`p-4 sm:p-5 rounded-2xl border animate-in fade-in duration-150 ${
                   isCurrentCorrect
-                    ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-                    : 'bg-rose-50/70 border-rose-200 text-rose-950'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
                   {isCurrentCorrect ? (
                     <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs font-bold text-emerald-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                         Correct Answer!
                       </span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="w-4 h-4 text-rose-600" />
-                      <span className="text-xs font-bold text-rose-800">
+                      <AlertCircle className="w-4 h-4 text-rose-500" />
+                      <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
                         Needs Review
                       </span>
                     </>
@@ -544,22 +686,31 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 </div>
 
                 <div className="text-xs mb-1.5">
-                  <span className="font-semibold text-slate-700">Correct Answer: </span>
-                  <span className="font-medium text-slate-900 underline decoration-slate-300">
-                    {Array.isArray(currentQ.correctAnswer)
-                      ? currentQ.correctAnswer.join(', ')
-                      : currentQ.correctAnswer}
+                  <span className="font-semibold" style={{ color: theme.fontPrimary }}>Correct Answer: </span>
+                  <span className="font-medium underline" style={{ color: theme.primary }}>
+                    {formatScientificText(
+                      Array.isArray(currentQ.correctAnswer)
+                        ? currentQ.correctAnswer.join(', ')
+                        : String(currentQ.correctAnswer)
+                    )}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed pt-1.5 border-t border-black/5">
-                  {currentQ.explanation}
+                <p className="text-xs leading-relaxed pt-1.5 border-t border-black/5 dark:border-white/5" style={{ color: theme.fontBody }}>
+                  {formatScientificText(currentQ.explanation)}
                 </p>
 
                 {currentQ.type === 'essay' && currentQ.sampleEssayAnswer && (
-                  <div className="mt-3 p-3 bg-white/80 rounded-xl text-xs text-amber-900 border border-amber-200">
+                  <div 
+                    className="mt-3 p-3 rounded-xl text-xs border"
+                    style={{
+                      backgroundColor: theme.isInverted ? 'rgba(245, 158, 11, 0.1)' : '#FFFBEB',
+                      borderColor: theme.isInverted ? 'rgba(245, 158, 11, 0.3)' : '#FDE68A',
+                      color: theme.isInverted ? '#FCD34D' : '#92400E'
+                    }}
+                  >
                     <span className="font-bold block mb-0.5">Model Answer:</span>
-                    <p>{currentQ.sampleEssayAnswer}</p>
+                    <p>{formatScientificText(currentQ.sampleEssayAnswer)}</p>
                   </div>
                 )}
               </div>
@@ -571,7 +722,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 <button
                   onClick={handlePrevQuestion}
                   disabled={currentIndex === 0}
-                  className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 disabled:opacity-30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-xl border text-xs font-medium disabled:opacity-30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  style={{
+                    backgroundColor: theme.bgCard,
+                    borderColor: theme.borderSubtle,
+                    color: theme.fontPrimary
+                  }}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Prev</span>
@@ -580,7 +736,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 <button
                   onClick={() => handleJumpToQuestion(currentIndex + 1)}
                   disabled={currentIndex === questions.length - 1}
-                  className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 disabled:opacity-30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-xl border text-xs font-medium disabled:opacity-30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  style={{
+                    backgroundColor: theme.bgCard,
+                    borderColor: theme.borderSubtle,
+                    color: theme.fontPrimary
+                  }}
                   title="Skip to the next question number"
                 >
                   <span>Skip</span>
@@ -627,7 +788,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 {answeredCount > 0 && (
                   <button
                     onClick={finishQuiz}
-                    className="border border-slate-200 hover:border-slate-400 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl text-xs font-medium border transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: theme.bgCard,
+                      borderColor: theme.borderSubtle,
+                      color: theme.fontMuted
+                    }}
                   >
                     Finish ({answeredCount}/{questions.length})
                   </button>
@@ -638,7 +804,13 @@ export const QuizView: React.FC<QuizViewProps> = ({
         )
       ) : (
         /* QUIZ COMPLETED SCREEN */
-        <div className="bg-white rounded-3xl p-8 border border-[#EFE5E3] shadow-sm text-center max-w-lg mx-auto space-y-6 animate-in zoom-in-95 duration-150">
+        <div 
+          className="rounded-3xl p-8 border shadow-sm text-center max-w-lg mx-auto space-y-6 animate-in zoom-in-95 duration-150"
+          style={{
+            backgroundColor: theme.bgCard,
+            borderColor: theme.borderSubtle
+          }}
+        >
           <div
             className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-white shadow-sm"
             style={{ backgroundColor: theme.primary }}
@@ -647,38 +819,44 @@ export const QuizView: React.FC<QuizViewProps> = ({
           </div>
 
           <div>
-            <h2 className="font-serif text-2xl font-bold text-slate-900">
+            <h2 className="font-serif text-2xl font-bold" style={{ color: theme.fontPrimary }}>
               Quiz Completed
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs mt-1" style={{ color: theme.fontMuted }}>
               Select any question above to review.
             </p>
           </div>
 
-          <div className="bg-[#FAF7F6] rounded-2xl p-4 border border-[#EFE5E3] flex items-center justify-around text-center">
+          <div 
+            className="rounded-2xl p-4 border flex items-center justify-around text-center"
+            style={{
+              backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.04)' : theme.bgPage,
+              borderColor: theme.borderSubtle
+            }}
+          >
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">
+              <span className="text-[10px] uppercase font-bold block mb-0.5" style={{ color: theme.fontMuted }}>
                 Score
               </span>
-              <span className="font-serif text-xl font-bold text-slate-900">
+              <span className="font-serif text-xl font-bold" style={{ color: theme.fontPrimary }}>
                 {totalScore}
               </span>
             </div>
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-6 w-px" style={{ backgroundColor: theme.borderSubtle }} />
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">
+              <span className="text-[10px] uppercase font-bold block mb-0.5" style={{ color: theme.fontMuted }}>
                 Accuracy
               </span>
               <span className="font-serif text-xl font-bold" style={{ color: theme.primary }}>
                 {Math.round((correctCount / (questions.length || 1)) * 100)}%
               </span>
             </div>
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-6 w-px" style={{ backgroundColor: theme.borderSubtle }} />
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">
+              <span className="text-[10px] uppercase font-bold block mb-0.5" style={{ color: theme.fontMuted }}>
                 Correct
               </span>
-              <span className="font-serif text-xl font-bold text-slate-900">
+              <span className="font-serif text-xl font-bold" style={{ color: theme.fontPrimary }}>
                 {correctCount}/{questions.length}
               </span>
             </div>
@@ -687,7 +865,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
           <div className="flex gap-3 pt-1">
             <button
               onClick={handleRestartQuiz}
-              className="flex-1 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+              className="flex-1 py-2.5 rounded-xl border text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+              style={{
+                backgroundColor: theme.bgCard,
+                borderColor: theme.borderSubtle,
+                color: theme.fontPrimary
+              }}
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Restart Quiz</span>

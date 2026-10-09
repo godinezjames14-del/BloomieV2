@@ -8,7 +8,7 @@ export const initialReviewers: Reviewer[] = [
     fileSnippet: 'Comprehensive lecture reviewer covering all 24 slides on OSHA standards, standard precautions, lab hazards, BSC classes, BSL levels, and control hierarchies.',
     testDate: '2026-10-15',
     questionTypes: ['multiple_choice', 'identification', 'enumeration', 'essay'],
-    questionCount: 15,
+    questionCount: 25,
     createdAt: '2026-10-07',
     notesScrollProgress: 0,
     notes: [
@@ -109,8 +109,8 @@ export const initialReviewers: Reviewer[] = [
         type: 'multiple_choice',
         question: 'What is the single most important practice to prevent the spread of infection in the microbiology laboratory?',
         options: [
-          'Handwashing / Hand hygiene',
           'Wearing double latex gloves at all times',
+          'Handwashing / Hand hygiene',
           'Using UV germicidal lamps overnight',
           'Autoclaving all paper notebooks'
         ],
@@ -123,10 +123,10 @@ export const initialReviewers: Reviewer[] = [
         type: 'multiple_choice',
         question: 'During which specific practice do the majority of laboratory needle stick injuries occur?',
         options: [
-          'Recapping needles after use',
           'Centrifuging blood tubes',
+          'Disposing unbroken glass pipettes',
           'Performing venipuncture on patients',
-          'Disposing unbroken glass pipettes'
+          'Recapping needles after use'
         ],
         correctAnswer: 'Recapping needles after use',
         explanation: 'Most needle stick injuries occur during two-handed needle recapping. OSHA standards strictly prohibit recapping needles; used sharps must be discarded directly into puncture-resistant sharps containers.',
@@ -137,9 +137,9 @@ export const initialReviewers: Reviewer[] = [
         type: 'multiple_choice',
         question: 'What is the correct concentration and preparation requirement for household bleach used to decontaminate laboratory work surfaces?',
         options: [
-          '10% bleach solution (1:10 v/v dilution), prepared fresh daily',
           '50% bleach solution, prepared once a month',
           'Undiluted bleach solution, prepared weekly',
+          '10% bleach solution (1:10 v/v dilution), prepared fresh daily',
           '1% bleach solution stored in clear glass bottles indefinitely'
         ],
         correctAnswer: '10% bleach solution (1:10 v/v dilution), prepared fresh daily',
@@ -165,13 +165,293 @@ export const initialReviewers: Reviewer[] = [
         type: 'multiple_choice',
         question: 'What is the correct sequence for DOFFING (removing) Personal Protective Equipment (PPE)?',
         options: [
-          'Gloves → Gown → Eye Protection → Mask → Hand hygiene',
           'Mask → Gown → Eye Protection → Gloves → Hand hygiene',
+          'Gloves → Gown → Eye Protection → Mask → Hand hygiene',
           'Gown → Gloves → Mask → Eye Protection → Hand hygiene',
           'Hand hygiene → Gloves → Eye Protection → Gown → Mask'
         ],
         correctAnswer: 'Gloves → Gown → Eye Protection → Mask → Hand hygiene',
         explanation: 'During doffing, gloves are removed first because they carry the highest biohazard load, followed by the gown, eye protection, mask, and finally thorough hand hygiene.',
+        points: 10
+      },
+      {
+        id: 'mb-q-6',
+        type: 'multiple_choice',
+        question: 'In a microbiology laboratory, fire extinguishers must be placed at intervals of no more than how many feet?',
+        options: [
+          'Every 150 feet',
+          'Every 20 feet',
+          'Every 75 feet',
+          'Every 200 feet'
+        ],
+        correctAnswer: 'Every 75 feet',
+        explanation: 'Occupational fire safety standards require fire extinguishers to be placed every 75 feet, inspected monthly, and maintained annually (Slide 9).',
+        points: 10
+      },
+      {
+        id: 'mb-q-7',
+        type: 'multiple_choice',
+        question: 'At what minimum distance must flammable chemicals and alcohol be stored away from any heat source?',
+        options: [
+          'At least 1 foot',
+          'At least 25 feet',
+          'At least 50 feet',
+          'At least 5 feet'
+        ],
+        correctAnswer: 'At least 5 feet',
+        explanation: 'Flammable chemicals and alcohol must be stored in approved safety cans or storage cabinets at least 5 feet away from heat sources (Slide 10).',
+        points: 10
+      },
+      {
+        id: 'mb-q-8',
+        type: 'multiple_choice',
+        question: 'Why is the wearing of contact lenses prohibited when working with organic solvents like xylene, acetone, and formaldehyde?',
+        options: [
+          'Chemical fumes and vapors can become trapped underneath the contact lens, causing corneal damage',
+          'Contact lenses make microscopes blurry',
+          'Solvents instantly dissolve the glass of safety goggles',
+          'Contact lenses attract electrostatic charge from centrifuges'
+        ],
+        correctAnswer: 'Chemical fumes and vapors can become trapped underneath the contact lens, causing corneal damage',
+        explanation: 'Volatile solvents produce vapors that can dissolve into or become trapped beneath contact lenses, preventing tear clearance and causing severe corneal irritation and chemical burns.',
+        points: 10
+      },
+      {
+        id: 'mb-q-9',
+        type: 'multiple_choice',
+        question: 'Which direction should the air-handling system move air in a microbiology laboratory?',
+        options: [
+          'From higher risk areas to lower risk areas',
+          'From lower risk areas to higher risk areas, never the reverse',
+          'In a circular clockwise pattern into the lobby',
+          'Directly into the administrative staff offices'
+        ],
+        correctAnswer: 'From lower risk areas to higher risk areas, never the reverse',
+        explanation: 'Airflow must always move inward from clean (lower risk) areas to dirty (higher risk) areas under negative pressure to prevent contaminated aerosols from escaping.',
+        points: 10
+      },
+      {
+        id: 'mb-q-10',
+        type: 'multiple_choice',
+        question: 'Which type of Biological Safety Cabinet (BSC) is most commonly used in hospital clinical microbiology laboratories, recirculating 70% of the air and exhausting 30%?',
+        options: [
+          'Class I Open-front',
+          'Class II, Type B (Class IIB)',
+          'Class II, Type A (Class IIA)',
+          'Class III Glove Box'
+        ],
+        correctAnswer: 'Class II, Type A (Class IIA)',
+        explanation: 'Class IIA BSCs are self-contained and recirculate 70% of the air through HEPA filters while exhausting 30%, making them the standard choice for clinical diagnostic labs (Slide 18).',
+        points: 10
+      },
+      {
+        id: 'mb-q-11',
+        type: 'multiple_choice',
+        question: 'When radioisotopes, carcinogens, or toxic volatile chemicals are used in conjunction with microbiological agents, which BSC type must be selected?',
+        options: [
+          'Class II, Type B (Class IIB)',
+          'Class II, Type A (Class IIA)',
+          'Class I open-faced cabinet',
+          'Chemical storage cabinet without exhaust'
+        ],
+        correctAnswer: 'Class II, Type B (Class IIB)',
+        explanation: 'Class IIB cabinets discharge exhaust air outside the building, preventing toxic chemical vapors or radionuclides from recirculating back into the room.',
+        points: 10
+      },
+      {
+        id: 'mb-q-12',
+        type: 'multiple_choice',
+        question: 'Which of the following organisms is classified under Biosafety Level 1 (BSL-1)?',
+        options: [
+          'Mycobacterium tuberculosis',
+          'Marburg virus',
+          'Human Immunodeficiency Virus (HIV)',
+          'Bacillus subtilis'
+        ],
+        correctAnswer: 'Bacillus subtilis',
+        explanation: 'Bacillus subtilis and Naegleria gruberi are standard BSL-1 agents that have no known potential for infecting healthy human adults (Slide 20).',
+        points: 10
+      },
+      {
+        id: 'mb-q-13',
+        type: 'multiple_choice',
+        question: 'Which infectious agents are classified as Biosafety Level 2 (BSL-2), the group most commonly sought in diagnostic clinical specimens?',
+        options: [
+          'Marburg virus and Ebola virus',
+          'HIV, HBV (Hepatitis B), and Salmonella organisms',
+          'Bacillus subtilis and non-pathogenic E. coli',
+          'Mycobacterium tuberculosis and Coxiella burnetii'
+        ],
+        correctAnswer: 'HIV, HBV (Hepatitis B), and Salmonella organisms',
+        explanation: 'BSL-2 agents include the common etiologic agents of clinical human disease such as HIV, HBV, and Salmonella species (Slide 21).',
+        points: 10
+      },
+      {
+        id: 'mb-q-14',
+        type: 'multiple_choice',
+        question: 'Mycobacterium tuberculosis and systemic fungi mold stages are classified under which Biosafety Level due to primary transmission by infectious aerosols?',
+        options: [
+          'Biosafety Level 1 (BSL-1)',
+          'Biosafety Level 2 (BSL-2)',
+          'Biosafety Level 3 (BSL-3)',
+          'Biosafety Level 4 (BSL-4)'
+        ],
+        correctAnswer: 'Biosafety Level 3 (BSL-3)',
+        explanation: 'M. tuberculosis, Coxiella burnetii, and the mold stages of systemic fungi are BSL-3 agents transmitted primarily through infectious aerosols (Slide 22).',
+        points: 10
+      },
+      {
+        id: 'mb-q-15',
+        type: 'multiple_choice',
+        question: 'According to the NIOSH Hierarchy of Controls, which method is considered the MOST effective and which is LEAST effective?',
+        options: [
+          'PPE is most effective; Elimination is least effective',
+          'Administrative controls are most effective; Engineering is least effective',
+          'Substitution is most effective; Administrative is least effective',
+          'Elimination is most effective; PPE is least effective'
+        ],
+        correctAnswer: 'Elimination is most effective; PPE is least effective',
+        explanation: 'Under the Hierarchy of Controls, Elimination (physically removing the hazard) is at the top (most effective), while PPE is at the bottom (least effective as it relies solely on user compliance) (Slide 24).',
+        points: 10
+      },
+      {
+        id: 'mb-q-16',
+        type: 'multiple_choice',
+        question: 'Which class of Biological Safety Cabinet is a gas-tight enclosure with arm-length heavy rubber gloves, providing maximum containment for BSL-4 agents?',
+        options: [
+          'Class III Biological Safety Cabinet (Glove Box)',
+          'Class II Type A cabinet',
+          'Chemical fume hood',
+          'Standard horizontal laminar flow clean bench'
+        ],
+        correctAnswer: 'Class III Biological Safety Cabinet (Glove Box)',
+        explanation: 'Class III biological safety cabinets are totally enclosed and gas-tight with HEPA-filtered supply and exhaust air, manipulated strictly through attached heavy rubber gloves.',
+        points: 10
+      },
+      {
+        id: 'mb-q-17',
+        type: 'multiple_choice',
+        question: 'Which Biosafety Level is designated for exotic, life-threatening viral hemorrhagic fevers such as Marburg virus and Ebola with no available vaccine or therapy?',
+        options: [
+          'Biosafety Level 2 (BSL-2)',
+          'Biosafety Level 4 (BSL-4)',
+          'Biosafety Level 1 (BSL-1)',
+          'Biosafety Level 3 (BSL-3)'
+        ],
+        correctAnswer: 'Biosafety Level 4 (BSL-4)',
+        explanation: 'BSL-4 is designated for dangerous and exotic agents posing a high individual risk of aerosol-transmitted life-threatening infection with no proven treatment or vaccine.',
+        points: 10
+      },
+      {
+        id: 'mb-q-18',
+        type: 'multiple_choice',
+        question: 'Which laboratory procedures generate infectious aerosols and therefore must be performed inside a certified Biological Safety Cabinet?',
+        options: [
+          'Visual macro-inspection of urine color in sealed cups',
+          'Typing results into the electronic lab information system',
+          'Mincing, grinding, vortexing, and direct smear preparation',
+          'Washing hands at the dedicated sink'
+        ],
+        correctAnswer: 'Mincing, grinding, vortexing, and direct smear preparation',
+        explanation: 'Procedures like mincing tissues, mechanical grinding, high-speed vortexing, and preparing direct smears generate dangerous infectious aerosols that require BSC containment.',
+        points: 10
+      },
+      {
+        id: 'mb-q-19',
+        type: 'multiple_choice',
+        question: 'In the Hierarchy of Controls, what defines Engineering Controls?',
+        options: [
+          'Relying entirely on worker vigilance and protective gloves',
+          'Posting biohazard warning signs and writing safety manuals',
+          'Asking staff to voluntarily avoid high-risk clinical samples',
+          'Isolating workers from hazards using equipment such as BSCs, negative pressure, and sharps containers'
+        ],
+        correctAnswer: 'Isolating workers from hazards using equipment such as BSCs, negative pressure, and sharps containers',
+        explanation: 'Engineering controls isolate personnel from workplace hazards through physical barrier designs, mechanical ventilation, and engineered safety containers.',
+        points: 10
+      },
+      {
+        id: 'mb-q-20',
+        type: 'multiple_choice',
+        question: 'What ungrounded electrical devices are strictly prohibited in the microbiology laboratory due to fire and shock risk?',
+        options: [
+          '"Cheater adapters" (ungrounded 3-to-2 prong adapters)',
+          'Standard UL-listed surge protectors',
+          'Heavy-duty grounded extension cables',
+          'Double-insulated digital centrifuges'
+        ],
+        correctAnswer: '"Cheater adapters" (ungrounded 3-to-2 prong adapters)',
+        explanation: '"Cheater adapters" defeat the equipment ground pin, exposing lab workers to serious electrical shock and fire hazards.',
+        points: 10
+      },
+      {
+        id: 'mb-q-21',
+        type: 'multiple_choice',
+        question: 'What protocol must be observed prior to performing any internal maintenance or adjustments on laboratory electrical devices?',
+        options: [
+          'Keep the instrument plugged in and wear metal glasses',
+          'Unplug equipment, ensure hands are dry, and remove all jewelry',
+          'Wipe energized internal circuits with dilute bleach',
+          'Turn off room lights and work in partial darkness'
+        ],
+        correctAnswer: 'Unplug equipment, ensure hands are dry, and remove all jewelry',
+        explanation: 'Always de-energize and unplug the equipment, ensure hands and work surfaces are completely dry, and remove all conductive jewelry before servicing.',
+        points: 10
+      },
+      {
+        id: 'mb-q-22',
+        type: 'multiple_choice',
+        question: 'How often must laboratory automatic fire detection and suppression systems be functionally tested?',
+        options: [
+          'Tested once every 5 years',
+          'Tested monthly during shifts',
+          'Tested every 3 months',
+          'Tested daily at morning inspection'
+        ],
+        correctAnswer: 'Tested every 3 months',
+        explanation: 'Slide 9 specifies that laboratory fire detection and suppression systems must be tested every 3 months.',
+        points: 10
+      },
+      {
+        id: 'mb-q-23',
+        type: 'multiple_choice',
+        question: 'What is the maximum allowed expiration period for freshly diluted 10% household bleach solution?',
+        options: [
+          '7 days after reconstitution',
+          '30 days after opening container',
+          '1 hour after mixing',
+          'Strictly 24 hours from preparation'
+        ],
+        correctAnswer: 'Strictly 24 hours from preparation',
+        explanation: 'A 10% bleach solution degrades rapidly in dilute form; OSHA and CDC require it to be prepared fresh daily with a strict 24-hour expiration.',
+        points: 10
+      },
+      {
+        id: 'mb-q-24',
+        type: 'multiple_choice',
+        question: 'What protective equipment is required when carrying glass bottles containing more than 500 mL of hazardous liquids?',
+        options: [
+          'Dedicated bottle carriers',
+          'Open wire dish baskets',
+          'Disposable plastic grocery bags',
+          'Holding the bare glass neck with two hands'
+        ],
+        correctAnswer: 'Dedicated bottle carriers',
+        explanation: 'Bottle carriers provide impact protection and containment in the event of accidental bottle slippage or impact.',
+        points: 10
+      },
+      {
+        id: 'mb-q-25',
+        type: 'multiple_choice',
+        question: 'Under which Biosafety Level is the harmless amoeboflagellate organism Naegleria gruberi classified?',
+        options: [
+          'Biosafety Level 4 (BSL-4)',
+          'Biosafety Level 1 (BSL-1)',
+          'Biosafety Level 3 (BSL-3)',
+          'Biosafety Level 2 (BSL-2)'
+        ],
+        correctAnswer: 'Biosafety Level 1 (BSL-1)',
+        explanation: 'Naegleria gruberi is a benign model organism classified under BSL-1 alongside Bacillus subtilis for teaching laboratories.',
         points: 10
       }
     ]

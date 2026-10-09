@@ -76,7 +76,7 @@ export const HierarchyOfControlsDiagram: React.FC = () => {
     <div 
       className="my-6 p-5 sm:p-7 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : '#FCFAF9',
+        backgroundColor: theme.bgCard,
         borderColor: theme.borderSubtle
       }}
     >
@@ -224,7 +224,7 @@ export const PpeSequenceDiagram: React.FC = () => {
     <div 
       className="my-6 p-5 sm:p-7 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : '#FCFAF9',
+        backgroundColor: theme.bgCard,
         borderColor: theme.borderSubtle
       }}
     >
@@ -264,7 +264,7 @@ export const PpeSequenceDiagram: React.FC = () => {
         <div 
           className="rounded-xl p-4 border space-y-3"
           style={{
-            backgroundColor: theme.isInverted ? 'rgba(13, 148, 136, 0.12)' : '#FFFFFF',
+            backgroundColor: theme.isInverted ? 'rgba(13, 148, 136, 0.12)' : theme.bgPage,
             borderColor: theme.isInverted ? 'rgba(45, 212, 191, 0.3)' : '#A7F3D0'
           }}
         >
@@ -308,7 +308,7 @@ export const PpeSequenceDiagram: React.FC = () => {
         <div 
           className="rounded-xl p-4 border space-y-3"
           style={{
-            backgroundColor: theme.isInverted ? 'rgba(225, 29, 72, 0.12)' : '#FFFFFF',
+            backgroundColor: theme.isInverted ? 'rgba(225, 29, 72, 0.12)' : theme.bgPage,
             borderColor: theme.isInverted ? 'rgba(251, 113, 133, 0.3)' : '#FECDD3'
           }}
         >
@@ -378,7 +378,7 @@ export const BscClassificationDiagram: React.FC = () => {
     <div 
       className="my-6 p-5 sm:p-7 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : '#FCFAF9',
+        backgroundColor: theme.bgCard,
         borderColor: theme.borderSubtle
       }}
     >
@@ -418,7 +418,7 @@ export const BscClassificationDiagram: React.FC = () => {
         <div 
           className="rounded-xl p-4 border space-y-2.5"
           style={{
-            backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : '#FFFFFF',
+            backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : theme.bgPage,
             borderColor: theme.borderSubtle
           }}
         >
@@ -455,7 +455,7 @@ export const BscClassificationDiagram: React.FC = () => {
         <div 
           className="rounded-xl p-4 border space-y-2.5"
           style={{
-            backgroundColor: theme.isInverted ? 'rgba(13, 148, 136, 0.15)' : '#FFFFFF',
+            backgroundColor: theme.isInverted ? 'rgba(13, 148, 136, 0.15)' : theme.bgPage,
             borderColor: theme.isInverted ? 'rgba(45, 212, 191, 0.4)' : '#5EEAD4'
           }}
         >
@@ -507,7 +507,7 @@ export const BscClassificationDiagram: React.FC = () => {
         <div 
           className="rounded-xl p-4 border space-y-2.5"
           style={{
-            backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : '#FFFFFF',
+            backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : theme.bgPage,
             borderColor: theme.borderSubtle
           }}
         >
@@ -561,7 +561,7 @@ export const BslMatrixDiagram: React.FC = () => {
       agents: 'Bacillus subtilis, Naegleria gruberi',
       facility: 'Standard undergraduate teaching bench; open benchwork',
       ppe: 'Basic lab coat, gloves, eye protection as needed',
-      bgLight: 'bg-white',
+      bgLight: 'bg-transparent',
       borderLight: 'border-slate-200',
       badgeBgLight: 'bg-slate-100 text-slate-800',
       bgDark: 'rgba(255, 255, 255, 0.04)',
@@ -613,7 +613,7 @@ export const BslMatrixDiagram: React.FC = () => {
     <div 
       className="my-6 p-5 sm:p-7 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : '#FCFAF9',
+        backgroundColor: theme.bgCard,
         borderColor: theme.borderSubtle
       }}
     >
@@ -650,7 +650,7 @@ export const BslMatrixDiagram: React.FC = () => {
 
       <div className="space-y-2.5">
         {levels.map((item) => {
-          const bg = theme.isInverted ? item.bgDark : undefined;
+          const bg = theme.isInverted ? item.bgDark : theme.bgPage;
           const border = theme.isInverted ? item.borderDark : undefined;
 
           return (
@@ -720,7 +720,7 @@ export const NfpaDiamondDiagram: React.FC = () => {
     <div 
       className="my-6 p-5 sm:p-7 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : '#FCFAF9',
+        backgroundColor: theme.bgCard,
         borderColor: theme.borderSubtle
       }}
     >
@@ -827,8 +827,8 @@ export const BleachProtocolDiagram: React.FC = () => {
     <div 
       className="my-6 p-4 sm:p-5 rounded-2xl border transition-all"
       style={{
-        backgroundColor: theme.isInverted ? theme.bgCard : 'rgba(204, 251, 241, 0.4)',
-        borderColor: theme.isInverted ? theme.borderSubtle : '#99F6E4'
+        backgroundColor: theme.bgCard,
+        borderColor: theme.borderSubtle
       }}
     >
       <div className="flex items-center gap-2 mb-2">
@@ -847,7 +847,7 @@ export const BleachProtocolDiagram: React.FC = () => {
       <div 
         className="rounded-xl p-3.5 border grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs"
         style={{
-          backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : '#FFFFFF',
+          backgroundColor: theme.isInverted ? 'rgba(255, 255, 255, 0.04)' : theme.bgPage,
           borderColor: theme.borderSubtle
         }}
       >
