@@ -8,6 +8,7 @@ import { Exam } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
 import { ThemePicker } from './ThemePicker';
 import { formatScientificText } from '../utils/textFormatter';
+import { GcashSupportCard } from './GcashSupportCard';
 
 interface HomePageProps {
   exams: Exam[];
@@ -59,6 +60,9 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* Main Container */}
       <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-8 space-y-6 animate-in fade-in duration-200">
+        {/* Support & Donation Container (GCash / InstaPay QR) */}
+        <GcashSupportCard />
+
         {/* Header & Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
