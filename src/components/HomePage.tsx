@@ -9,6 +9,7 @@ import { useFlowerTheme } from '../context/ThemeContext';
 import { ThemePicker } from './ThemePicker';
 import { formatScientificText } from '../utils/textFormatter';
 import { GcashSupportCard } from './GcashSupportCard';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HomePageProps {
   exams: Exam[];
@@ -53,7 +54,8 @@ export const HomePage: React.FC<HomePageProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <PWAInstallButton variant="compact" />
           <ThemePicker />
         </div>
       </header>
@@ -62,6 +64,9 @@ export const HomePage: React.FC<HomePageProps> = ({
       <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-8 space-y-6 animate-in fade-in duration-200">
         {/* Support & Donation Container (GCash / InstaPay QR) */}
         <GcashSupportCard />
+
+        {/* PWA Phone Download & Offline Banner */}
+        <PWAInstallButton variant="banner" />
 
         {/* Header & Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

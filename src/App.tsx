@@ -23,6 +23,8 @@ import {
   PanelLeftClose,
   Home
 } from 'lucide-react';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 function AppContent() {
   const { theme } = useFlowerTheme();
@@ -420,8 +422,9 @@ function AppContent() {
                 </button>
               </div>
 
-              {/* Right Controls: Theme Selector */}
-              <div className="flex items-center">
+              {/* Right Controls: Install Button & Theme Selector */}
+              <div className="flex items-center gap-2">
+                <PWAInstallButton variant="compact" />
                 <ThemePicker />
               </div>
 
@@ -479,6 +482,8 @@ function AppContent() {
           </div>
         </div>
       )}
+      {/* Non-intrusive offline connectivity status pill */}
+      <OfflineIndicator />
     </div>
   );
 }
