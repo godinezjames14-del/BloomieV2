@@ -32,11 +32,33 @@ function AppContent() {
   // Load exams from localStorage or fallback to defaults
   const [exams, setExams] = useState<Exam[]>(() => {
     try {
-      const saved = localStorage.getItem('bloomie_microbio_v9');
+      const saved = localStorage.getItem('bloomie_microbio_v14') || localStorage.getItem('bloomie_microbio_v13') || localStorage.getItem('bloomie_microbio_v12');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 5) {
-          return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge initialExams to ensure all new reviewers (e.g. Multiple Choice Quiz) are present
+          return initialExams.map(initialExam => {
+            const savedExam = parsed.find((p: Exam) => p.id === initialExam.id);
+            if (!savedExam) return initialExam;
+            const updatedSubjects = initialExam.subjects.map(initialSubj => {
+              const savedSubj = savedExam.subjects.find((s: Subject) => s.id === initialSubj.id);
+              if (!savedSubj) return initialSubj;
+              const savedRevMap = new Map<string, Reviewer>(savedSubj.reviewers.map((r: Reviewer) => [r.id, r]));
+              const mergedReviewers = initialSubj.reviewers.map(initialRev => {
+                const existing = savedRevMap.get(initialRev.id);
+                if (existing) {
+                  return {
+                    ...initialRev,
+                    notesScrollProgress: existing.notesScrollProgress ?? initialRev.notesScrollProgress,
+                    quizAccuracy: existing.quizAccuracy ?? initialRev.quizAccuracy
+                  };
+                }
+                return initialRev;
+              });
+              return { ...savedSubj, reviewers: mergedReviewers };
+            });
+            return { ...savedExam, subjects: updatedSubjects };
+          });
         }
       }
     } catch (e) {
@@ -58,7 +80,7 @@ function AppContent() {
   // Sync exams to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('bloomie_microbio_v9', JSON.stringify(exams));
+      localStorage.setItem('bloomie_microbio_v14', JSON.stringify(exams));
     } catch (e) {
       console.warn('Failed to save exams', e);
     }
@@ -188,6 +210,19 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  // Handle switching tabs with intelligent auto-selection of quiz reviewer when jumping to Quiz
+  const handleSwitchTab = (tab: WorkspaceTab) => {
+    if (tab === 'quiz' && currentReviewer && currentReviewer.questions.length === 0) {
+      const quizRev = currentSubject?.reviewers.find(
+        r => r.name.toLowerCase().includes('quiz') || r.name.toLowerCase().includes('multiple') || r.questions.length > 0
+      );
+      if (quizRev) {
+        setSelectedReviewerId(quizRev.id);
+      }
+    }
+    setWorkspaceTab(tab);
+  };
+
   // Authentic Reading Scroll Progress Tracker
   const handleUpdateScrollProgress = (progressPercent: number) => {
     if (!currentReviewer) return;
@@ -315,7 +350,7 @@ function AppContent() {
               onSelectExam={(examId, subjId, revId, prefTab) => {
                 handleSelectExamAndReviewer(examId, subjId, revId, prefTab);
               }}
-              onSelectTab={setWorkspaceTab}
+              onSelectTab={handleSwitchTab}
               onBackToHome={() => {
                 setPageView('home');
                 window.scrollTo({ top: 0, behavior: 'instant' });
@@ -346,7 +381,7 @@ function AppContent() {
                     setIsMobileDrawerOpen(false);
                   }}
                   onSelectTab={(tab) => {
-                    setWorkspaceTab(tab);
+                    handleSwitchTab(tab);
                     setIsMobileDrawerOpen(false);
                   }}
                   onBackToHome={() => {
@@ -456,6 +491,7 @@ function AppContent() {
                   allSubjects={currentExam.subjects}
                   examTitle={currentExam.title}
                   onUpdateNotes={handleUpdateNotes}
+                  onSelectReviewerAndTab={handleSelectReviewerAndTab}
                   onNavigateToTab={(tab) =>
                     setWorkspaceTab(tab === 'dashboard' ? 'overview' : (tab as WorkspaceTab))
                   }

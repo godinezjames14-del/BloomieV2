@@ -290,20 +290,39 @@ export const QuizView: React.FC<QuizViewProps> = ({
   }, 0);
 
   if (questions.length === 0) {
+    const quizRev = currentSubject?.reviewers.find(
+      r => r.name.toLowerCase().includes('quiz') || r.name.toLowerCase().includes('multiple') || r.questions.length > 0
+    );
+
     return (
       <div className="max-w-md mx-auto py-16 text-center">
         <HelpCircle className="w-10 h-10 opacity-40 mx-auto mb-3" style={{ color: theme.primary }} />
-        <h2 className="font-serif text-xl font-bold text-slate-800">No questions available</h2>
-        <p className="text-xs text-slate-500 mt-1 mb-6">
-          This reviewer doesn't have questions configured yet.
+        <h2 className="font-serif text-xl font-bold" style={{ color: theme.fontPrimary }}>
+          Multiple Choice Quiz
+        </h2>
+        <p className="text-xs mt-1 mb-6" style={{ color: theme.fontMuted }}>
+          {quizRev 
+            ? `Ready to test your knowledge with the ${quizRev.name}?` 
+            : "This reviewer doesn't have questions configured yet."}
         </p>
-        <button
-          onClick={() => onNavigateToTab('notes')}
-          className="text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-          style={{ backgroundColor: theme.primary }}
-        >
-          View Study Notes
-        </button>
+        <div className="flex items-center justify-center gap-3">
+          {quizRev && onSelectReviewerAndTab && currentSubject && (
+            <button
+              onClick={() => onSelectReviewerAndTab(currentSubject.id, quizRev.id, 'quiz')}
+              className="text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-xs hover:opacity-90 active:scale-95 transition-all"
+              style={{ backgroundColor: theme.primary }}
+            >
+              Start Multiple Choice Quiz
+            </button>
+          )}
+          <button
+            onClick={() => onNavigateToTab('notes')}
+            className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer border hover:opacity-80 transition-all"
+            style={{ borderColor: theme.borderSubtle, color: theme.fontPrimary }}
+          >
+            View Study Notes
+          </button>
+        </div>
       </div>
     );
   }

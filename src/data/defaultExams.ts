@@ -3,6 +3,8 @@ import { atomicTheorySubject } from './subjectAtomicTheory';
 import { plantHistologySubject } from './subjectPlantHistology';
 import { plantStemSubject } from './subjectPlantStem';
 import { microbioStainsVaccinesSubject } from './subjectMicrobioStainsVaccines';
+import { commonPlantsSubject } from './subjectCommonPlantsPhilippines';
+import { prescriptionAbbreviationsSubject } from './subjectPrescriptionAbbreviations';
 
 export const initialExams: Exam[] = [
   {
@@ -997,5 +999,23 @@ export const initialExams: Exam[] = [
     date: '2026-10-27',
     status: 'upcoming',
     subjects: [microbioStainsVaccinesSubject]
+  },
+  {
+    id: 'exam-common-plants-ph',
+    title: 'Common Plants in the Philippines',
+    code: 'BOTANY-PLANTS-PH',
+    description: 'Comprehensive taxonomic catalog and memorization reviewer of 93 common Philippine plants, covering Local/Filipino names, English common names, scientific binomial nomenclature, plant families, and high-yield board exam questions.',
+    date: '2026-10-30',
+    status: 'upcoming',
+    subjects: [commonPlantsSubject]
+  },
+  {
+    id: 'exam-rx-abbreviations',
+    title: 'Prescription Abbreviations & Medical Orders',
+    code: 'PHARM-ABBR-403',
+    description: 'Table 4.3 clinical pharmacology module on Latin prescription directions, patient signa instructions, dosage forms, routes of administration, clinical diagnoses, and ISMP safety warnings.',
+    date: '2026-11-05',
+    status: 'upcoming',
+    subjects: [prescriptionAbbreviationsSubject]
   }
 ];

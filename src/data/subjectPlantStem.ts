@@ -692,7 +692,7 @@ export const plantStemSubject: Subject = {
     },
     {
       id: 'rev-stem-quiz-50',
-      name: '50-Item Practice Quiz',
+      name: 'Multiple Choice Quiz (50 Items)',
       fileName: 'Plant_Stem_50Q_Quiz.pdf',
       fileSnippet: '50 multiple choice questions testing stem morphology, anatomy, modifications, transport, and pharmacognosy with shuffled choices.',
       testDate: '2026-10-24',

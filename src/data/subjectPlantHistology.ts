@@ -621,7 +621,7 @@ export const plantHistologySubject: Subject = {
     },
     {
       id: 'rev-histology-quiz-50',
-      name: '50-Item Practice Quiz',
+      name: 'Multiple Choice Quiz (50 Items)',
       fileName: 'Plant_Histology_50Q_Quiz.pdf',
       fileSnippet: '50 multiple choice questions evaluating plant tissues, meristems, cell types, tissue systems, and primary growth with shuffled options.',
       testDate: '2026-10-22',

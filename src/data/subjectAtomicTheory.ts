@@ -566,7 +566,7 @@ export const atomicTheorySubject: Subject = {
     },
     {
       id: 'rev-atomic-quiz-50',
-      name: '50-Item Practice Quiz',
+      name: 'Multiple Choice Quiz (50 Items)',
       fileName: 'Atomic_Theory_50Q_Quiz.pdf',
       fileSnippet: '50 multiple choice questions testing atomic history, subatomic particles, quantum numbers, electron configurations, and chemical bonding with shuffled choices.',
       testDate: '2026-10-20',

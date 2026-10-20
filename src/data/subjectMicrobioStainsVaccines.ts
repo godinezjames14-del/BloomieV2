@@ -712,7 +712,7 @@ export const microbioStainsVaccinesSubject: Subject = {
     },
     {
       id: 'rev-stains-quiz-50',
-      name: '50-Item Practice Quiz',
+      name: 'Multiple Choice Quiz (50 Items)',
       fileName: 'Microbiology_Stains_Vaccines_50Q_Quiz.pdf',
       fileSnippet: '50 multiple choice questions testing staining mechanisms, cell wall biochemistry, acid-fastness, and all 7 vaccine types with shuffled choices.',
       testDate: '2026-10-26',

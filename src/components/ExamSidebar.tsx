@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   PanelLeftClose,
   X,
-  Search
+  Search,
+  CheckSquare
 } from 'lucide-react';
 import { Exam, Subject, Reviewer, WorkspaceTab } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
@@ -281,11 +282,16 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
                         const isRevSelected = isEntryActive && rev.id === activeReviewerId;
                         const isNotesItem = rev.name.toLowerCase().includes('notes');
                         const isIdentItem = rev.name.toLowerCase().includes('identification');
+                        const isQuizItem = !isNotesItem && !isIdentItem;
 
                         return (
-                          <div
+                          <a
                             key={rev.id}
-                            onClick={() => {
+                            href={`#${encodeURIComponent(entry.code || entry.id)}/${encodeURIComponent(rev.id)}`}
+                            role="link"
+                            aria-label={`Open ${rev.name} in ${entry.title}`}
+                            onClick={(e) => {
+                              e.preventDefault();
                               const targetTab: WorkspaceTab = isNotesItem ? 'notes' : 'quiz';
                               if (onSelectExam) {
                                 onSelectExam(entry.id, rev.subjectId, rev.id, targetTab);
@@ -294,25 +300,25 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
                               }
                               onCloseMobileDrawer?.();
                             }}
-                            className="w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all hover:opacity-90"
+                            className="group/item w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all hover:opacity-95 no-underline block"
                             style={{
                               backgroundColor: isRevSelected ? theme.primaryLight : undefined,
                               color: isRevSelected ? theme.primary : theme.fontBody
                             }}
                           >
                             <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <div className="shrink-0" style={{ color: isRevSelected ? theme.primary : theme.fontMuted }}>
+                              <div className="shrink-0 transition-transform group-hover/item:scale-110" style={{ color: isRevSelected ? theme.primary : theme.fontMuted }}>
                                 {isNotesItem ? (
                                   <BookOpen className="w-3.5 h-3.5" />
-                                ) : isIdentItem ? (
-                                  <Sparkles className="w-3.5 h-3.5" />
+                                ) : isQuizItem ? (
+                                  <CheckSquare className="w-3.5 h-3.5" />
                                 ) : (
-                                  <HelpCircle className="w-3.5 h-3.5" />
+                                  <Sparkles className="w-3.5 h-3.5" />
                                 )}
                               </div>
                               <span
-                                className={`text-xs leading-snug break-words flex-1 min-w-0 ${
-                                  isRevSelected ? 'font-bold' : ''
+                                className={`text-xs leading-snug break-words flex-1 min-w-0 group-hover/item:underline ${
+                                  isRevSelected ? 'font-bold' : 'font-medium'
                                 }`}
                                 style={{ color: isRevSelected ? theme.primary : theme.fontBody }}
                                 title={rev.name}
@@ -321,12 +327,26 @@ export const ExamSidebar: React.FC<ExamSidebarProps> = ({
                               </span>
                             </div>
 
-                            {rev.quizAccuracy?.completed && (
-                              <span className="text-[10px] text-emerald-600 font-bold shrink-0">
-                                {rev.quizAccuracy.scorePercent}%
-                              </span>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {isQuizItem && (
+                                <span 
+                                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                  style={{
+                                    backgroundColor: isRevSelected ? theme.primary : (theme.isInverted ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'),
+                                    color: isRevSelected ? '#FFFFFF' : theme.fontMuted
+                                  }}
+                                >
+                                  Quiz
+                                </span>
+                              )}
+
+                              {rev.quizAccuracy?.completed && (
+                                <span className="text-[10px] text-emerald-600 font-bold shrink-0">
+                                  {rev.quizAccuracy.scorePercent}%
+                                </span>
+                              )}
+                            </div>
+                          </a>
                         );
                       })}
                     </div>

@@ -5,9 +5,10 @@ import {
   Check, 
   ArrowRight, 
   VolumeX, 
-  CheckCircle2 
+  CheckCircle2,
+  FileText
 } from 'lucide-react';
-import { NoteItem, Reviewer, ActiveTab, Subject } from '../types';
+import { NoteItem, Reviewer, ActiveTab, Subject, WorkspaceTab } from '../types';
 import { useFlowerTheme } from '../context/ThemeContext';
 import { formatScientificText } from '../utils/textFormatter';
 import { 
@@ -26,6 +27,7 @@ interface NotesViewProps {
   examTitle?: string;
   onUpdateNotes: (notes: NoteItem[]) => void;
   onNavigateToTab: (tab: ActiveTab) => void;
+  onSelectReviewerAndTab?: (subjectId: string, reviewerId: string, tab: WorkspaceTab) => void;
   onUpdateScrollProgress?: (progress: number) => void;
 }
 
@@ -168,7 +170,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
   currentReviewer,
   currentSubject,
   onUpdateNotes,
-  onNavigateToTab
+  onNavigateToTab,
+  onSelectReviewerAndTab
 }) => {
   const { theme } = useFlowerTheme();
   const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null);
@@ -251,9 +254,28 @@ export const NotesView: React.FC<NotesViewProps> = ({
             {currentSubject.name}
           </span>
         )}
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold leading-tight" style={{ color: theme.fontPrimary }}>
-          {currentReviewer.name}
-        </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold leading-tight" style={{ color: theme.fontPrimary }}>
+            {currentReviewer.name}
+          </h1>
+          {currentReviewer.fileName && (
+            <a
+              href={`/assets/aistudio/${currentReviewer.fileName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all hover:opacity-85 self-start sm:self-auto cursor-pointer"
+              style={{
+                backgroundColor: theme.isInverted ? 'rgba(255,255,255,0.06)' : theme.bgCard,
+                borderColor: theme.borderSubtle,
+                color: theme.primary
+              }}
+              title="View source document"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Source Document</span>
+            </a>
+          )}
+        </div>
         <p className="text-xs mt-1.5 leading-normal flex items-center gap-2" style={{ color: theme.fontMuted }}>
           <span>{subjectNotes.length} Connected Sections</span>
           <span aria-hidden="true">·</span>
@@ -401,11 +423,20 @@ export const NotesView: React.FC<NotesViewProps> = ({
               </div>
 
               <button
-                onClick={() => onNavigateToTab('quiz')}
+                onClick={() => {
+                  const quizRev = currentSubject?.reviewers.find(
+                    r => r.name.toLowerCase().includes('quiz') || r.name.toLowerCase().includes('multiple') || r.questions.length > 0
+                  );
+                  if (quizRev && onSelectReviewerAndTab && currentSubject) {
+                    onSelectReviewerAndTab(currentSubject.id, quizRev.id, 'quiz');
+                  } else {
+                    onNavigateToTab('quiz');
+                  }
+                }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer shadow-xs hover:opacity-90 active:scale-95 transition-all shrink-0"
                 style={{ backgroundColor: theme.primary }}
               >
-                <span>Practice Quiz</span>
+                <span>Multiple Choice Quiz</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
