@@ -1,4 +1,4 @@
-# Bloomie — Minimalist Study Reviewer
+# BRAAloomie — Minimalist Study Reviewer
 
 A calm, distraction-free study reviewer designed for clarity, visual learning, and rapid knowledge retention. Built with React, TypeScript, Tailwind CSS, and Vite, ready for deployment on Vercel or any modern static hosting service.
 
